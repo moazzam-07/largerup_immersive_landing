@@ -1,26 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import StepProgressBar from './components/StepProgressBar';
-import StepWelcome from './components/StepWelcome';
 import StepName from './components/StepName';
 import StepStudioType from './components/StepStudioType';
 import StepCityGoal from './components/StepCityGoal';
 import StepContact from './components/StepContact';
-import StepTestimonials from './components/StepTestimonials';
 import StepCalendar from './components/StepCalendar';
 import StepSuccess from './components/StepSuccess';
 
-const STEP_TITLES = [
-  'Identity',
-  'Practice',
-  'Market',
-  'Reach',
-  'Outcomes',
-  'Schedule',
-];
-
 export default function App() {
-  const [currentStep, setCurrentStep] = useState(0);
+  // Land directly on Step 1 (Asking for Name)
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const containerRef = useRef(null);
 
@@ -30,7 +20,6 @@ export default function App() {
     role: '',
     studioName: '',
     city: '',
-    goal: '',
     phone: '',
     rawPhone: '',
     email: '',
@@ -38,30 +27,27 @@ export default function App() {
 
   const [bookingDetails, setBookingDetails] = useState(null);
 
-  // Emil Kowalski & GSAP Smooth Step Transition
+  // Smooth Apple/Uber style step transition
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(
         containerRef.current,
         {
           opacity: 0,
-          y: 14,
-          scale: 0.985,
+          y: 12,
         },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          duration: 0.35,
-          ease: 'power3.out',
+          duration: 0.28,
+          ease: 'power2.out',
         }
       );
     }
-    // Scroll to top smoothly on step change
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Lead capture webhook to modal endpoint
+  // Lead capture webhook
   const sendLeadWebhook = async (updatedData = {}) => {
     const merged = { ...formData, ...updatedData };
     const payload = {
@@ -69,9 +55,9 @@ export default function App() {
       email: merged.email || '',
       phone: merged.phone || '',
       role: merged.role || 'Interior Studio',
-      notes: `Studio: ${merged.studioName || 'N/A'} | City: ${merged.city || 'N/A'} | Goal: ${merged.goal || 'N/A'} | Slot: ${merged.bookingSlot || 'Pending'}`,
+      notes: `Studio: ${merged.studioName || 'N/A'} | City: ${merged.city || 'N/A'} | Slot: ${merged.bookingSlot || 'Pending'}`,
       submittedAt: new Date().toISOString(),
-      source: 'LargerUp Immersive Onboarding (iOS Flow)',
+      source: 'LargerUp Customer Onboarding Flow',
     };
 
     try {
@@ -84,7 +70,7 @@ export default function App() {
         }
       );
     } catch (err) {
-      console.warn('Lead capture webhook notification handled:', err);
+      console.warn('Lead capture webhook notification:', err);
     }
   };
 
@@ -93,27 +79,24 @@ export default function App() {
   };
 
   const handleBack = () => {
-    setCurrentStep((prev) => Math.max(0, prev - 1));
+    setCurrentStep((prev) => Math.max(1, prev - 1));
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col justify-between selection:bg-ink selection:text-white">
-      {/* iOS App Navigation Header */}
-      <StepProgressBar
-        currentStep={currentStep}
-        totalSteps={6}
-        stepTitles={STEP_TITLES}
-        onBack={handleBack}
-        canGoBack={currentStep > 0 && currentStep < 7}
-      />
+    <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
+      {/* Sleek Apple / Uber top navigation */}
+      {currentStep < 6 && (
+        <StepProgressBar
+          currentStep={currentStep}
+          totalSteps={5}
+          onBack={handleBack}
+          canGoBack={currentStep > 1}
+        />
+      )}
 
-      {/* Main Fluid Container */}
-      <main className="flex-1 flex items-center justify-center py-4 sm:py-8 w-full">
+      {/* Main Container */}
+      <main className="flex-1 flex items-center justify-center py-4 w-full">
         <div ref={containerRef} className="w-full">
-          {currentStep === 0 && (
-            <StepWelcome onNext={handleNext} />
-          )}
-
           {currentStep === 1 && (
             <StepName
               value={formData.name}
@@ -139,10 +122,9 @@ export default function App() {
             <StepCityGoal
               name={formData.name}
               cityValue={formData.city}
-              goalValue={formData.goal}
               studioNameValue={formData.studioName}
-              onNext={({ studioName, city, goal }) => {
-                setFormData((prev) => ({ ...prev, studioName, city, goal }));
+              onNext={({ studioName, city }) => {
+                setFormData((prev) => ({ ...prev, studioName, city }));
                 handleNext();
               }}
             />
@@ -163,10 +145,6 @@ export default function App() {
           )}
 
           {currentStep === 5 && (
-            <StepTestimonials onNext={handleNext} />
-          )}
-
-          {currentStep === 6 && (
             <StepCalendar
               name={formData.name}
               isSubmitting={isSubmitting}
@@ -176,12 +154,12 @@ export default function App() {
                 setFormData((prev) => ({ ...prev, bookingSlot: booking.formatted }));
                 await sendLeadWebhook({ bookingSlot: booking.formatted });
                 setIsSubmitting(false);
-                setCurrentStep(7);
+                setCurrentStep(6);
               }}
             />
           )}
 
-          {currentStep === 7 && (
+          {currentStep === 6 && (
             <StepSuccess
               formData={formData}
               bookingDetails={bookingDetails}
@@ -190,26 +168,18 @@ export default function App() {
         </div>
       </main>
 
-      {/* Bottom Minimalist Footer */}
-      <footer className="w-full py-4 px-4 border-t border-hairline/60 text-center">
-        <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-muted">
-          <span>
-            © {new Date().getFullYear()} LargerUp Inc. Handcrafted for Interior Designers.
-          </span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Direct Studio Grants Active
-            </span>
-            <a
-              href="https://interiors.largerup.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-ink transition-colors"
-            >
-              interiors.largerup.com
-            </a>
-          </div>
+      {/* Subtle, calm bottom footer */}
+      <footer className="w-full py-4 px-6 text-center border-t border-neutral-100">
+        <div className="max-w-lg mx-auto flex items-center justify-between text-xs text-neutral-400">
+          <span>© {new Date().getFullYear()} LargerUp</span>
+          <a
+            href="https://interiors.largerup.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-neutral-700 transition-colors"
+          >
+            interiors.largerup.com
+          </a>
         </div>
       </footer>
     </div>
