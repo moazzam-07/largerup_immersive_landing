@@ -33,6 +33,7 @@ export async function createTwentyLead({
 
     // 1. Attempt to create Person
     try {
+      const isKolkata = (city || '').trim().toUpperCase() === 'KOLKATA';
       const personPayload = {
         name: {
           firstName,
@@ -50,7 +51,10 @@ export async function createTwentyLead({
               primaryPhoneCallingCode: '+91',
             }
           : undefined,
-        city: city ? city.toUpperCase() : undefined,
+        // In Twenty CRM, city1 is a free-form string for all cities (Mumbai, Delhi, etc.)
+        // while city is a strict enum that only accepts 'KOLKATA'.
+        city1: city || '',
+        city: isKolkata ? 'KOLKATA' : undefined,
         jobTitle: `${role || 'Interior Professional'} — ${studioName || 'Studio'}`,
       };
 
@@ -70,17 +74,29 @@ export async function createTwentyLead({
     }
 
     // 2. If Person already existed (duplicate constraint), find existing Person ID
+    // CRITICAL: Filter candidates strictly by phone or email. NEVER grab people[0] blindly!
     if (!personId && (cleanPhone || email)) {
       try {
         const queryTerm = cleanPhone || email;
         const searchRes = await fetch(
-          `${TWENTY_BASE_URL}/rest/people?search=${encodeURIComponent(queryTerm)}&limit=1`,
+          `${TWENTY_BASE_URL}/rest/people?search=${encodeURIComponent(queryTerm)}&limit=10`,
           {
             headers: { Authorization: `Bearer ${TWENTY_API_KEY}` },
           }
         );
         const searchData = await searchRes.json();
-        personId = searchData?.data?.people?.[0]?.id || null;
+        const candidatePeople = searchData?.data?.people || [];
+        const matched = candidatePeople.find((p) => {
+          const pEmail = (p.emails?.primaryEmail || '').trim().toLowerCase();
+          const pPhone = (p.phones?.primaryPhoneNumber || '').replace(/[^0-9]/g, '').slice(-10);
+          return (
+            (email && pEmail === email.trim().toLowerCase()) ||
+            (cleanPhone && pPhone === cleanPhone)
+          );
+        });
+        if (matched) {
+          personId = matched.id;
+        }
       } catch (err) {
         console.warn('[Twenty CRM] Person search notice:', err);
       }
