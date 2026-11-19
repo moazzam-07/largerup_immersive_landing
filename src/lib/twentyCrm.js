@@ -9,7 +9,9 @@ const TWENTY_API_KEY =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjRjYjhhOTRlLTk0MTMtNDZmMC1hZjUzLWU2YzA4YTJlODJmZSJ9.eyJzdWIiOiIzY2Y2OWY5Ny0yOTNkLTQ2NWMtOTk4Ni04M2U1MGNkMTQ1OTgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiM2NmNjlmOTctMjkzZC00NjVjLTk5ODYtODNlNTBjZDE0NTk4IiwiaWF0IjoxNzk1MTAxNTkzLCJleHAiOjQ5NDg3MDE1ODksImp0aSI6ImM2ZjZmYWFiLWZkNDYtNDVjNC1hMDQ3LTIxNzYxODFjMzYzNiJ9.-AY7eYZJqmPj8AIaXYjQkkBOf36MkNtbA9aR48MvZxacSDK3meemtY7qRCk9qTM4-11YRc-injPtvIJ8SSjoHg';
 
 /**
- * Creates or links a Person and creates an Opportunity with stage "NEW_LEAD" in Twenty CRM.
+ * Creates or links a Person and creates an Opportunity with:
+ * - leadStatus: "NEW_LEAD" (for the "Lead life" Kanban view)
+ * - stage: "NEW_LEAD" (for the "Lead Pipeline" Kanban view)
  * Non-blocking, returns { personId, opportunityId } or null.
  */
 export async function createTwentyLead({
@@ -67,7 +69,7 @@ export async function createTwentyLead({
       console.warn('[Twenty CRM] Person creation notice:', e);
     }
 
-    // 2. If Person already existed (duplicate constraint), search and find existing Person ID
+    // 2. If Person already existed (duplicate constraint), find existing Person ID
     if (!personId && (cleanPhone || email)) {
       try {
         const queryTerm = cleanPhone || email;
@@ -84,10 +86,11 @@ export async function createTwentyLead({
       }
     }
 
-    // 3. Create Opportunity in NEW_LEAD stage
+    // 3. Create Opportunity in BOTH leadStatus: "NEW_LEAD" (for Lead life) AND stage: "NEW_LEAD" (for Lead Pipeline)
     const opportunityName = `${name || 'New Lead'} — ${studioName || 'Interior Studio'}`;
     const opportunityPayload = {
       name: opportunityName,
+      leadStatus: 'NEW_LEAD',
       stage: 'NEW_LEAD',
       pointOfContactId: personId || null,
     };
@@ -104,7 +107,7 @@ export async function createTwentyLead({
     const oppData = await oppRes.json();
     const opportunityId = oppData?.data?.createOpportunity?.id;
 
-    console.log('[Twenty CRM] Lead created in NEW_LEAD stage:', {
+    console.log('[Twenty CRM] Lead created in NEW_LEAD (Lead life & Pipeline):', {
       personId,
       opportunityId,
     });
@@ -117,7 +120,7 @@ export async function createTwentyLead({
 }
 
 /**
- * Updates an Opportunity stage to "MEETING_BOOKED" when user confirms a Cal.com slot.
+ * Updates an Opportunity stage to "MEETING_BOOKED" in both leadStatus and stage.
  */
 export async function updateTwentyLeadToMeetingBooked(
   opportunityId,
@@ -130,6 +133,7 @@ export async function updateTwentyLeadToMeetingBooked(
 
   try {
     const patchPayload = {
+      leadStatus: 'MEETING_BOOKED',
       stage: 'MEETING_BOOKED',
       meetingBookedAt: startTime || new Date().toISOString(),
     };
@@ -144,7 +148,7 @@ export async function updateTwentyLeadToMeetingBooked(
     });
 
     const data = await res.json();
-    console.log('[Twenty CRM] Updated stage to MEETING_BOOKED:', data);
+    console.log('[Twenty CRM] Updated to MEETING_BOOKED in Lead life & Pipeline:', data);
     return data;
   } catch (err) {
     console.warn('[Twenty CRM] Error updating opportunity stage:', err);
