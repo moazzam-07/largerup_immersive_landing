@@ -6,8 +6,6 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
   const [city, setCity] = useState(cityValue || '');
   const [errors, setErrors] = useState({});
 
-  const firstName = name ? name.split(' ')[0] : 'Designer';
-
   const quickCities = [
     'Mumbai',
     'Delhi NCR',
@@ -28,7 +26,7 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
     }
 
     if (!studioName.trim()) {
-      newErrors.studioName = 'Please enter your studio or practice name';
+      newErrors.studioName = 'Please enter your studio or business name';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -49,14 +47,14 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
         Where are you based?
       </h1>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We optimize your website layout and project portfolio for your local market.
+        This helps local clients in your city easily find your work.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* City Input */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            City / Location
+            City or Town <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -65,7 +63,7 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
               setCity(e.target.value);
               if (errors.city) setErrors((prev) => ({ ...prev, city: '' }));
             }}
-            placeholder="e.g. Mumbai, Bangalore, Delhi NCR..."
+            placeholder="e.g. Mumbai, Bangalore, Kolkata..."
             className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-4 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150 mb-3"
           />
 
@@ -97,11 +95,11 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
           )}
         </div>
 
-        {/* Studio / Brand Name (Mandatory, with subtle personal name suggestion) */}
+        {/* Studio / Brand Name */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-              Studio / Practice Name
+              Studio or Brand Name <span className="text-red-500">*</span>
             </label>
           </div>
           <input
@@ -117,7 +115,7 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
 
           {/* Subtle note suggesting to write own name if no studio */}
           <p className="text-[12px] text-neutral-400 mt-2 px-1 leading-normal">
-            Don't have a registered studio name yet? You can write your own name (e.g.{' '}
+            No studio name yet? You can simply use your own name (e.g.{' '}
             <button
               type="button"
               onClick={() => {

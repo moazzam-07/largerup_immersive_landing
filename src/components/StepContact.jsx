@@ -32,7 +32,7 @@ export default function StepContact({
     }
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      newErrors.email = 'Please enter a valid business email address';
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -48,8 +48,6 @@ export default function StepContact({
       email: email.trim(),
     };
 
-    // Non-blocking background dispatch:
-    // Dispatches lead as "NEW LEAD" in background without blocking UI
     if (onSaveLead) {
       try {
         onSaveLead(contactData);
@@ -58,17 +56,16 @@ export default function StepContact({
       }
     }
 
-    // Advance immediately
     onNext(contactData);
   };
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
-        What's your phone number?
+        Where should we send your site preview?
       </h1>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We'll send your completed website preview and project files directly to your mobile.
+        We'll send your website design link directly to your mobile and email.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -98,7 +95,7 @@ export default function StepContact({
           )}
         </div>
 
-        {/* Email Input (Compulsory) */}
+        {/* Email Input */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
             Email address <span className="text-red-500">*</span>
@@ -107,7 +104,7 @@ export default function StepContact({
             type="email"
             value={email}
             onChange={handleEmailChange}
-            placeholder="e.g. contact@yourstudio.com"
+            placeholder="e.g. hello@yourstudio.com"
             autoComplete="email"
             className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-4 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150"
           />
@@ -121,7 +118,7 @@ export default function StepContact({
         {/* Privacy Note */}
         <div className="flex items-center gap-2 text-xs text-neutral-500 pt-1">
           <Lock className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-          <span>Your contact information is kept strictly private. Zero spam.</span>
+          <span>Your contact details are kept strictly private. Zero spam.</span>
         </div>
 
         <button

@@ -5,11 +5,11 @@
 
 const TWENTY_BASE_URL = 'https://demgrow.chad-crm.demgrow.online';
 const TWENTY_API_KEY =
-  import.meta.env.VITE_TWENTY_API_KEY ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TWENTY_API_KEY) ||
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjRjYjhhOTRlLTk0MTMtNDZmMC1hZjUzLWU2YzA4YTJlODJmZSJ9.eyJzdWIiOiIzY2Y2OWY5Ny0yOTNkLTQ2NWMtOTk4Ni04M2U1MGNkMTQ1OTgiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiM2NmNjlmOTctMjkzZC00NjVjLTk5ODYtODNlNTBjZDE0NTk4IiwiaWF0IjoxNzk1MTAxNTkzLCJleHAiOjQ5NDg3MDE1ODksImp0aSI6ImM2ZjZmYWFiLWZkNDYtNDVjNC1hMDQ3LTIxNzYxODFjMzYzNiJ9.-AY7eYZJqmPj8AIaXYjQkkBOf36MkNtbA9aR48MvZxacSDK3meemtY7qRCk9qTM4-11YRc-injPtvIJ8SSjoHg';
 
 /**
- * Creates a Person and an Opportunity with stage "NEW_LEAD" in Twenty CRM.
+ * Creates or links a Person and creates an Opportunity with stage "NEW_LEAD" in Twenty CRM.
  * Non-blocking, returns { personId, opportunityId } or null.
  */
 export async function createTwentyLead({
@@ -27,42 +27,65 @@ export async function createTwentyLead({
     const lastName = parts.slice(1).join(' ') || (studioName || 'Professional');
     const cleanPhone = (rawPhone || phone || '').replace(/[^0-9]/g, '').slice(-10);
 
-    // 1. Create Person
-    const personPayload = {
-      name: {
-        firstName,
-        lastName,
-      },
-      emails: email
-        ? {
-            primaryEmail: email.trim().toLowerCase(),
+    let personId = null;
+
+    // 1. Attempt to create Person
+    try {
+      const personPayload = {
+        name: {
+          firstName,
+          lastName,
+        },
+        emails: email
+          ? {
+              primaryEmail: email.trim().toLowerCase(),
+            }
+          : undefined,
+        phones: cleanPhone
+          ? {
+              primaryPhoneNumber: cleanPhone,
+              primaryPhoneCountryCode: 'IN',
+              primaryPhoneCallingCode: '+91',
+            }
+          : undefined,
+        city: city ? city.toUpperCase() : undefined,
+        jobTitle: `${role || 'Interior Professional'} — ${studioName || 'Studio'}`,
+      };
+
+      const personRes = await fetch(`${TWENTY_BASE_URL}/rest/people`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${TWENTY_API_KEY}`,
+        },
+        body: JSON.stringify(personPayload),
+      });
+
+      const personData = await personRes.json();
+      personId = personData?.data?.createPerson?.id;
+    } catch (e) {
+      console.warn('[Twenty CRM] Person creation notice:', e);
+    }
+
+    // 2. If Person already existed (duplicate constraint), search and find existing Person ID
+    if (!personId && (cleanPhone || email)) {
+      try {
+        const queryTerm = cleanPhone || email;
+        const searchRes = await fetch(
+          `${TWENTY_BASE_URL}/rest/people?search=${encodeURIComponent(queryTerm)}&limit=1`,
+          {
+            headers: { Authorization: `Bearer ${TWENTY_API_KEY}` },
           }
-        : undefined,
-      phones: cleanPhone
-        ? {
-            primaryPhoneNumber: cleanPhone,
-            primaryPhoneCountryCode: 'IN',
-            primaryPhoneCallingCode: '+91',
-          }
-        : undefined,
-      city: city ? city.toUpperCase() : undefined,
-      jobTitle: `${role || 'Interior Professional'} — ${studioName || 'Studio'}`,
-    };
+        );
+        const searchData = await searchRes.json();
+        personId = searchData?.data?.people?.[0]?.id || null;
+      } catch (err) {
+        console.warn('[Twenty CRM] Person search notice:', err);
+      }
+    }
 
-    const personRes = await fetch(`${TWENTY_BASE_URL}/rest/people`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${TWENTY_API_KEY}`,
-      },
-      body: JSON.stringify(personPayload),
-    });
-
-    const personData = await personRes.json();
-    const personId = personData?.data?.createPerson?.id;
-
-    // 2. Create Opportunity in NEW_LEAD stage
-    const opportunityName = `${name || 'New Lead'} — ${studioName || 'Interior Studio'} [LargerUp Web]`;
+    // 3. Create Opportunity in NEW_LEAD stage
+    const opportunityName = `${name || 'New Lead'} — ${studioName || 'Interior Studio'}`;
     const opportunityPayload = {
       name: opportunityName,
       stage: 'NEW_LEAD',
@@ -81,14 +104,14 @@ export async function createTwentyLead({
     const oppData = await oppRes.json();
     const opportunityId = oppData?.data?.createOpportunity?.id;
 
-    console.log('[Twenty CRM] Successfully created lead in NEW_LEAD stage:', {
+    console.log('[Twenty CRM] Lead created in NEW_LEAD stage:', {
       personId,
       opportunityId,
     });
 
     return { personId, opportunityId };
   } catch (err) {
-    console.warn('[Twenty CRM] Error creating lead in background:', err);
+    console.warn('[Twenty CRM] Error in background lead dispatch:', err);
     return null;
   }
 }
@@ -121,7 +144,7 @@ export async function updateTwentyLeadToMeetingBooked(
     });
 
     const data = await res.json();
-    console.log('[Twenty CRM] Successfully updated stage to MEETING_BOOKED:', data);
+    console.log('[Twenty CRM] Updated stage to MEETING_BOOKED:', data);
     return data;
   } catch (err) {
     console.warn('[Twenty CRM] Error updating opportunity stage:', err);

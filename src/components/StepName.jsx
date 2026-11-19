@@ -27,7 +27,7 @@ export default function StepName({ value, onNext }) {
         What's your name?
       </h1>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We'll set up your interior studio website preview around your brand.
+        We'll customize your free website preview for you.
       </p>
 
       {/* Input Form */}
