@@ -316,7 +316,14 @@ function VideoCard({ item, isFirst, activeVideoId, onPlay, onStop, onOpenModal }
   );
 }
 
-export default function VideoTestimonials({ onOpenModal, onOpenForm }) {
+export default function VideoTestimonials({
+  onOpenModal,
+  onOpenForm,
+  className = '',
+  hideHeader = false,
+  hideCta = false,
+  customCta = null,
+}) {
   const [activeVideoId, setActiveVideoId] = useState(null);
 
   const handlePlay = (id) => {
@@ -328,20 +335,28 @@ export default function VideoTestimonials({ onOpenModal, onOpenForm }) {
   };
 
   return (
-    <section id="case-studies" className="py-12 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-hairline">
+    <section
+      id="case-studies"
+      className={
+        className ||
+        'py-12 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-hairline'
+      }
+    >
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-        <h2 className="text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight">
-          How interior studios scale their client pipeline.
-        </h2>
-      </div>
+      {!hideHeader && (
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight">
+            How interior studios scale their client pipeline.
+          </h2>
+        </div>
+      )}
 
       {/* 3 Vertical 9:16 Video Cards
           Mobile Layout: Triangle formation (Luxihome centered on top, The Alam Interior & Deco Perfect below it side-by-side)
           Desktop Layout: Balanced 3-column row
           Controls: Direct inline playback with interactive scrubber and fullscreen modal trigger
       */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 mb-10 sm:mb-14 max-w-4xl mx-auto items-start">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto items-start">
         {videoCaseStudies.map((item, idx) => (
           <VideoCard
             key={item.id}
@@ -355,24 +370,28 @@ export default function VideoTestimonials({ onOpenModal, onOpenForm }) {
         ))}
       </div>
 
-      {/* Soft, High-Converting Pitch Banner */}
-      <div className="bg-canvas-soft border border-hairline rounded-3xl p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-        <div>
-          <h4 className="text-base sm:text-xl font-bold text-ink">
-            Want to grow your interior business?
-          </h4>
-          <p className="text-xs sm:text-sm text-muted font-light mt-0.5">
-            Let's discuss how a dedicated client acquisition funnel can scale your studio.
-          </p>
+      {/* Custom or Default Pitch Banner */}
+      {customCta ? (
+        customCta
+      ) : !hideCta ? (
+        <div className="bg-canvas-soft border border-hairline rounded-3xl p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div>
+            <h4 className="text-base sm:text-xl font-bold text-ink">
+              Want to grow your interior business?
+            </h4>
+            <p className="text-xs sm:text-sm text-muted font-light mt-0.5">
+              Let's discuss how a dedicated client acquisition funnel can scale your studio.
+            </p>
+          </div>
+          <button
+            onClick={onOpenForm}
+            className="w-full sm:w-auto bg-ink hover:bg-ink-soft text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-full transition-all shrink-0 active:scale-95 inline-flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <span>Free Consultation</span>
+            <ArrowUpRight className="w-4 h-4 text-white/80" />
+          </button>
         </div>
-        <button
-          onClick={onOpenForm}
-          className="w-full sm:w-auto bg-ink hover:bg-ink-soft text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-full transition-all shrink-0 active:scale-95 inline-flex items-center justify-center gap-1.5 shadow-sm"
-        >
-          <span>Free Consultation</span>
-          <ArrowUpRight className="w-4 h-4 text-white/80" />
-        </button>
-      </div>
+      ) : null}
     </section>
   );
 }
