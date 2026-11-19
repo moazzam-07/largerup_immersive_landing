@@ -15,7 +15,7 @@ export default function StepCalendar({
         cal('ui', {
           theme: 'light',
           styles: { branding: { brandColor: '#171717' } },
-          hideEventTypeDetails: true, // Hides header, title, and description block completely!
+          hideEventTypeDetails: true, // Strips out title, description, and event meta
           layout: 'month_view',
         });
 
@@ -52,8 +52,8 @@ export default function StepCalendar({
   }, [onConfirmBooking]);
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
-      <div className="px-2 mb-3">
+    <div className="w-full max-w-xl mx-auto px-4 py-4 sm:py-6 flex flex-col text-left animate-blur-in">
+      <div className="px-1 mb-3">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1">
           Pick a 15-min call time.
         </h1>
@@ -63,10 +63,10 @@ export default function StepCalendar({
       </div>
 
       {/* Cal.com Official Embed Container - Compact and Clean */}
-      <div className="w-full bg-white rounded-2xl border border-neutral-200/90 overflow-hidden shadow-sm min-h-[520px] mb-3">
+      <div className="w-full bg-white rounded-2xl border border-neutral-200/90 overflow-hidden shadow-sm min-h-[540px] mb-3">
         <Cal
-          calLink="demgrow-kf1eni/15min"
-          style={{ width: '100%', height: '100%', minHeight: '520px', overflow: 'auto' }}
+          calLink="demgrow-kf1eni/15min?hideEventTypeDetails=true&layout=month_view"
+          style={{ width: '100%', height: '100%', minHeight: '540px', overflow: 'auto' }}
           config={{
             name: formData?.name || name || '',
             email: formData?.email || '',
@@ -77,7 +77,7 @@ export default function StepCalendar({
       </div>
 
       {/* Direct Fallback link */}
-      <div className="px-2 flex items-center justify-between text-xs text-neutral-400">
+      <div className="px-1 flex items-center justify-between text-xs text-neutral-400">
         <span>Direct Calendar Link</span>
         <a
           href="https://cal.com/demgrow-kf1eni/15min"

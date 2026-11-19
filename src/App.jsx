@@ -5,14 +5,16 @@ import StepName from './components/StepName';
 import StepStudioType from './components/StepStudioType';
 import StepCityGoal from './components/StepCityGoal';
 import StepContact from './components/StepContact';
+import StepWhyFree from './components/StepWhyFree';
 import StepCalendar from './components/StepCalendar';
 import StepSuccess from './components/StepSuccess';
+import { createTwentyLead, updateTwentyLeadToMeetingBooked } from './lib/twentyCrm';
 
 export default function App() {
   // Direct landing on Step 1: Name
   const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const containerRef = useRef(null);
+  const twentyOppIdRef = useRef(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -23,11 +25,12 @@ export default function App() {
     phone: '',
     rawPhone: '',
     email: '',
+    bookingSlot: '',
   });
 
   const [bookingDetails, setBookingDetails] = useState(null);
 
-  // Smooth Apple/Uber style step transition
+  // Smooth Apple / Uber style step transition
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(
@@ -47,8 +50,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Lead Lifecycle Webhook & CRM Sync (Non-blocking background execution)
-  const sendLeadWebhook = (updatedData = {}) => {
+  // Lead Lifecycle Dispatcher (Non-blocking background execution)
+  const dispatchLeadCapture = (updatedData = {}) => {
     const merged = { ...formData, ...updatedData };
     const currentStage = updatedData.stage || 'NEW LEAD';
 
@@ -59,7 +62,6 @@ export default function App() {
       role: merged.role || 'Interior Studio',
       studioName: merged.studioName || '',
       city: merged.city || '',
-      // Kanban stage for CRM: "NEW LEAD" or "MEETING BOOKED"
       stage: currentStage,
       status: currentStage,
       bookingSlot: merged.bookingSlot || (currentStage === 'MEETING BOOKED' ? 'Booked via Cal.com' : 'Pending'),
@@ -68,7 +70,7 @@ export default function App() {
       source: 'LargerUp Customer Onboarding Flow',
     };
 
-    // 1. Dispatch to Webhook / Evolution WhatsApp API in background
+    // 1. Dispatch to Webhook / Evolution WhatsApp in background
     fetch(
       'https://moazzammasood5--largerup-lead-webhook-submit-lead.us-east.modal.run',
       {
@@ -80,18 +82,26 @@ export default function App() {
       console.warn('Background webhook dispatch note:', err);
     });
 
-    // 2. Dispatch to Twenty CRM (when API endpoint is active)
-    syncToTwentyCRM(payload);
-  };
-
-  // Twenty CRM sync helper
-  const syncToTwentyCRM = (payload) => {
-    try {
-      // Prepared for Twenty CRM opportunities / leads endpoint
-      window.__latestLead = payload;
-      console.log(`[CRM Sync] Stage: ${payload.stage} | Lead:`, payload);
-    } catch (err) {
-      console.warn('CRM sync error:', err);
+    // 2. Dispatch to Twenty CRM
+    if (currentStage === 'NEW LEAD') {
+      createTwentyLead(merged)
+        .then((res) => {
+          if (res?.opportunityId) {
+            twentyOppIdRef.current = res.opportunityId;
+          }
+        })
+        .catch((err) => {
+          console.warn('Twenty CRM lead creation note:', err);
+        });
+    } else if (currentStage === 'MEETING BOOKED') {
+      if (twentyOppIdRef.current) {
+        updateTwentyLeadToMeetingBooked(twentyOppIdRef.current, {
+          bookingSlot: merged.bookingSlot,
+          startTime: updatedData.startTime,
+        }).catch((err) => {
+          console.warn('Twenty CRM booking update note:', err);
+        });
+      }
     }
   };
 
@@ -106,10 +116,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
       {/* Top Apple / Uber Navigation */}
-      {currentStep < 6 && (
+      {currentStep < 7 && (
         <StepProgressBar
           currentStep={currentStep}
-          totalSteps={5}
+          totalSteps={6}
           onBack={handleBack}
           canGoBack={currentStep > 1}
         />
@@ -118,6 +128,7 @@ export default function App() {
       {/* Main Form Container */}
       <main className="flex-1 flex items-center justify-center py-4 w-full">
         <div ref={containerRef} className="w-full">
+          {/* Step 1: Name */}
           {currentStep === 1 && (
             <StepName
               value={formData.name}
@@ -128,6 +139,7 @@ export default function App() {
             />
           )}
 
+          {/* Step 2: Practice Type */}
           {currentStep === 2 && (
             <StepStudioType
               name={formData.name}
@@ -139,6 +151,7 @@ export default function App() {
             />
           )}
 
+          {/* Step 3: Studio Name & City */}
           {currentStep === 3 && (
             <StepCityGoal
               name={formData.name}
@@ -151,13 +164,14 @@ export default function App() {
             />
           )}
 
+          {/* Step 4: Contact (Phone + Mandatory Email) */}
           {currentStep === 4 && (
             <StepContact
               formData={formData}
               onSaveLead={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
-                // Dispatches as "NEW LEAD" in background immediately
-                sendLeadWebhook({ ...contactData, stage: 'NEW LEAD' });
+                // Dispatches as "NEW LEAD" to Twenty CRM & Webhook immediately in background
+                dispatchLeadCapture({ ...contactData, stage: 'NEW LEAD' });
               }}
               onNext={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
@@ -166,24 +180,36 @@ export default function App() {
             />
           )}
 
-          {/* Preloaded Cal.com Container:
+          {/* Step 5: Why Complimentary & SEO/Maintenance Value */}
+          {currentStep === 5 && (
+            <StepWhyFree
+              name={formData.name}
+              onNext={handleNext}
+            />
+          )}
+
+          {/* Step 6: Preloaded Cal.com Container:
               Mounted immediately in background so iframe scripts are ready with 0s lag */}
-          <div style={{ display: currentStep === 5 ? 'block' : 'none' }}>
+          <div style={{ display: currentStep === 6 ? 'block' : 'none' }}>
             <StepCalendar
               name={formData.name}
               formData={formData}
-              isSubmitting={isSubmitting}
               onConfirmBooking={(booking) => {
                 setBookingDetails(booking);
                 setFormData((prev) => ({ ...prev, bookingSlot: booking.formatted }));
-                // Dispatches updated stage: "MEETING BOOKED" in background
-                sendLeadWebhook({ stage: 'MEETING BOOKED', bookingSlot: booking.formatted });
-                setCurrentStep(6);
+                // Dispatches updated stage: "MEETING BOOKED" to Twenty CRM & Webhook in background
+                dispatchLeadCapture({
+                  stage: 'MEETING BOOKED',
+                  bookingSlot: booking.formatted,
+                  startTime: booking.raw?.startTime,
+                });
+                setCurrentStep(7);
               }}
             />
           </div>
 
-          {currentStep === 6 && (
+          {/* Step 7: Booking Confirmed + Testimonials & Social Proof */}
+          {currentStep === 7 && (
             <StepSuccess
               formData={formData}
               bookingDetails={bookingDetails}

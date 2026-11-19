@@ -48,7 +48,7 @@ export default function StepContact({
       email: email.trim(),
     };
 
-    // Non-blocking background dispatch (no await):
+    // Non-blocking background dispatch:
     // Dispatches lead as "NEW LEAD" in background without blocking UI
     if (onSaveLead) {
       try {
@@ -58,7 +58,7 @@ export default function StepContact({
       }
     }
 
-    // Advance to schedule step immediately
+    // Advance immediately
     onNext(contactData);
   };
 
@@ -128,7 +128,7 @@ export default function StepContact({
           type="submit"
           className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-base py-4 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 group shadow-sm pt-4"
         >
-          <span>Continue to Schedule</span>
+          <span>Continue</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </button>
       </form>
