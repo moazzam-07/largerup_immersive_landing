@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { ArrowRight, Loader2, Lock } from 'lucide-react';
+import { ArrowRight, Lock } from 'lucide-react';
 
 export default function StepContact({
   formData,
   onNext,
   onSaveLead,
 }) {
-  const [phone, setPhone] = useState(formData.rawPhone || formData.phone?.replace(/[^0-9]/g, '').slice(-10) || '');
+  const [phone, setPhone] = useState(
+    formData.rawPhone || formData.phone?.replace(/[^0-9]/g, '').slice(-10) || ''
+  );
   const [email, setEmail] = useState(formData.email || '');
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePhoneChange = (e) => {
     const cleaned = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
@@ -17,11 +18,11 @@ export default function StepContact({
     if (error) setError('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!phone || phone.length < 10) {
-      setError('Please enter a valid 10-digit WhatsApp number');
+      setError('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -31,7 +32,6 @@ export default function StepContact({
     }
 
     setError('');
-    setIsSubmitting(true);
 
     const contactData = {
       phone: `+91 ${phone}`,
@@ -39,32 +39,34 @@ export default function StepContact({
       email: email.trim() || `${phone}@interior-lead.largerup.com`,
     };
 
-    try {
-      if (onSaveLead) {
-        await onSaveLead(contactData);
+    // Non-blocking fire-and-forget background webhook dispatch:
+    // We do NOT await Evolution WhatsApp API / CRM triggers here so the UI advances instantaneously in 0ms!
+    if (onSaveLead) {
+      try {
+        onSaveLead(contactData);
+      } catch (err) {
+        console.warn('Background lead capture dispatch:', err);
       }
-    } catch (err) {
-      console.warn('Lead capture handled:', err);
-    } finally {
-      setIsSubmitting(false);
-      onNext(contactData);
     }
+
+    // Advance immediately without waiting
+    onNext(contactData);
   };
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
-        What's your WhatsApp number?
+        What's your phone number?
       </h1>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We'll send your completed website preview and project files directly on WhatsApp.
+        We'll send your completed website preview and project files directly to your mobile.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Phone Input */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            WhatsApp Number
+            Phone Number
           </label>
           <div className="relative flex items-center">
             <div className="absolute left-4 flex items-center gap-1.5 text-neutral-900 font-semibold text-base border-r border-neutral-200 pr-3 py-1 pointer-events-none">
@@ -114,20 +116,10 @@ export default function StepContact({
 
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-neutral-900 hover:bg-black disabled:opacity-50 text-white font-medium text-base py-4 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 group shadow-sm pt-4"
+          className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-base py-4 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 group shadow-sm pt-4"
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <span>Continue to Schedule</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </>
-          )}
+          <span>Continue to Schedule</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </button>
       </form>
     </div>

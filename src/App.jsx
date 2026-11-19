@@ -9,7 +9,7 @@ import StepCalendar from './components/StepCalendar';
 import StepSuccess from './components/StepSuccess';
 
 export default function App() {
-  // Land directly on Step 1 (Asking for Name)
+  // Direct landing on Step 1: Name
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const containerRef = useRef(null);
@@ -34,12 +34,12 @@ export default function App() {
         containerRef.current,
         {
           opacity: 0,
-          y: 12,
+          y: 10,
         },
         {
           opacity: 1,
           y: 0,
-          duration: 0.28,
+          duration: 0.25,
           ease: 'power2.out',
         }
       );
@@ -47,8 +47,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Lead capture webhook
-  const sendLeadWebhook = async (updatedData = {}) => {
+  // Lead capture webhook - fire and forget, background execution
+  const sendLeadWebhook = (updatedData = {}) => {
     const merged = { ...formData, ...updatedData };
     const payload = {
       fullName: merged.name || 'Interior Professional',
@@ -60,18 +60,17 @@ export default function App() {
       source: 'LargerUp Customer Onboarding Flow',
     };
 
-    try {
-      await fetch(
-        'https://moazzammasood5--largerup-lead-webhook-submit-lead.us-east.modal.run',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }
-      );
-    } catch (err) {
-      console.warn('Lead capture webhook notification:', err);
-    }
+    // Non-blocking fetch
+    fetch(
+      'https://moazzammasood5--largerup-lead-webhook-submit-lead.us-east.modal.run',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    ).catch((err) => {
+      console.warn('Background webhook dispatch note:', err);
+    });
   };
 
   const handleNext = () => {
@@ -84,7 +83,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
-      {/* Sleek Apple / Uber top navigation */}
+      {/* Top Apple / Uber Navigation */}
       {currentStep < 6 && (
         <StepProgressBar
           currentStep={currentStep}
@@ -94,7 +93,7 @@ export default function App() {
         />
       )}
 
-      {/* Main Container */}
+      {/* Main Form Container */}
       <main className="flex-1 flex items-center justify-center py-4 w-full">
         <div ref={containerRef} className="w-full">
           {currentStep === 1 && (
@@ -133,9 +132,9 @@ export default function App() {
           {currentStep === 4 && (
             <StepContact
               formData={formData}
-              onSaveLead={async (contactData) => {
+              onSaveLead={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
-                await sendLeadWebhook(contactData);
+                sendLeadWebhook(contactData);
               }}
               onNext={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
@@ -147,13 +146,12 @@ export default function App() {
           {currentStep === 5 && (
             <StepCalendar
               name={formData.name}
+              formData={formData}
               isSubmitting={isSubmitting}
-              onConfirmBooking={async (booking) => {
-                setIsSubmitting(true);
+              onConfirmBooking={(booking) => {
                 setBookingDetails(booking);
                 setFormData((prev) => ({ ...prev, bookingSlot: booking.formatted }));
-                await sendLeadWebhook({ bookingSlot: booking.formatted });
-                setIsSubmitting(false);
+                sendLeadWebhook({ bookingSlot: booking.formatted });
                 setCurrentStep(6);
               }}
             />
@@ -168,7 +166,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* Subtle, calm bottom footer */}
+      {/* Subtle bottom footer */}
       <footer className="w-full py-4 px-6 text-center border-t border-neutral-100">
         <div className="max-w-lg mx-auto flex items-center justify-between text-xs text-neutral-400">
           <span>© {new Date().getFullYear()} LargerUp</span>

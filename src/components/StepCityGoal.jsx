@@ -4,7 +4,9 @@ import { ArrowRight } from 'lucide-react';
 export default function StepCityGoal({ name, cityValue, studioNameValue, onNext }) {
   const [studioName, setStudioName] = useState(studioNameValue || '');
   const [city, setCity] = useState(cityValue || '');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const firstName = name ? name.split(' ')[0] : 'Designer';
 
   const quickCities = [
     'Mumbai',
@@ -19,13 +21,24 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
+
     if (!city.trim()) {
-      setError('Please enter or select your city');
+      newErrors.city = 'Please select or enter your city';
+    }
+
+    if (!studioName.trim()) {
+      newErrors.studioName = 'Please enter your studio or practice name';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    setError('');
+
+    setErrors({});
     onNext({
-      studioName: studioName.trim() || `${name}'s Studio`,
+      studioName: studioName.trim(),
       city: city.trim(),
     });
   };
@@ -50,9 +63,9 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
             value={city}
             onChange={(e) => {
               setCity(e.target.value);
-              if (error) setError('');
+              if (errors.city) setErrors((prev) => ({ ...prev, city: '' }));
             }}
-            placeholder="e.g. Mumbai, Bangalore, Delhi..."
+            placeholder="e.g. Mumbai, Bangalore, Delhi NCR..."
             className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-4 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150 mb-3"
           />
 
@@ -64,7 +77,7 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
                 type="button"
                 onClick={() => {
                   setCity(c);
-                  if (error) setError('');
+                  if (errors.city) setErrors((prev) => ({ ...prev, city: '' }));
                 }}
                 className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-150 active:scale-95 ${
                   city.toLowerCase() === c.toLowerCase()
@@ -77,25 +90,53 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
             ))}
           </div>
 
-          {error && (
+          {errors.city && (
             <p className="text-xs text-red-500 font-medium mt-2 px-1">
-              {error}
+              {errors.city}
             </p>
           )}
         </div>
 
-        {/* Studio / Brand Name (Optional) */}
+        {/* Studio / Brand Name (Mandatory, with subtle personal name suggestion) */}
         <div>
-          <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            Studio Name <span className="text-neutral-400 font-normal lowercase">(optional)</span>
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+              Studio / Practice Name
+            </label>
+          </div>
           <input
             type="text"
             value={studioName}
-            onChange={(e) => setStudioName(e.target.value)}
-            placeholder="e.g. Studio Vista or leave blank to use your name"
+            onChange={(e) => {
+              setStudioName(e.target.value);
+              if (errors.studioName) setErrors((prev) => ({ ...prev, studioName: '' }));
+            }}
+            placeholder={`e.g. Studio Vista or ${name ? `${name} Interiors` : 'Your Name Designs'}`}
             className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-3.5 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150"
           />
+
+          {/* Subtle note suggesting to write own name if no studio */}
+          <p className="text-[12px] text-neutral-400 mt-2 px-1 leading-normal">
+            Don't have a registered studio name yet? You can write your own name (e.g.{' '}
+            <button
+              type="button"
+              onClick={() => {
+                const suggestion = `${name ? name : 'Design'} Interiors`;
+                setStudioName(suggestion);
+                if (errors.studioName) setErrors((prev) => ({ ...prev, studioName: '' }));
+              }}
+              className="text-neutral-700 underline underline-offset-2 hover:text-black font-medium"
+            >
+              {name ? `${name} Interiors` : 'Your Name Interiors'}
+            </button>
+            ).
+          </p>
+
+          {errors.studioName && (
+            <p className="text-xs text-red-500 font-medium mt-2 px-1">
+              {errors.studioName}
+            </p>
+          )}
         </div>
 
         <button

@@ -8,7 +8,7 @@ export default function StepSuccess({
   const clientFirstName = formData.name ? formData.name.split(' ')[0] : 'there';
 
   const whatsappMessage = encodeURIComponent(
-    `Hi LargerUp team, I just completed onboarding for ${formData.studioName || formData.name}. Our call is booked for ${bookingDetails?.formatted || 'the upcoming slot'}.`
+    `Hi LargerUp team, I just completed onboarding for ${formData.studioName || formData.name}. Our call is booked for ${bookingDetails?.formatted || 'our scheduled slot'}.`
   );
 
   return (
@@ -32,7 +32,7 @@ export default function StepSuccess({
             Consultation Details
           </span>
           <span className="text-xs font-medium text-neutral-900 bg-white px-2.5 py-1 rounded-full border border-neutral-200">
-            Confirmed
+            Confirmed via Cal.com
           </span>
         </div>
 
@@ -52,7 +52,7 @@ export default function StepSuccess({
 
         <div className="grid grid-cols-2 gap-3 pt-2 text-xs border-t border-neutral-200">
           <div>
-            <span className="text-neutral-500 block text-[11px] mb-0.5">Studio / Name</span>
+            <span className="text-neutral-500 block text-[11px] mb-0.5">Studio / Practice</span>
             <span className="font-semibold text-neutral-900 truncate block">
               {formData.studioName || formData.name}
             </span>
@@ -60,7 +60,7 @@ export default function StepSuccess({
           </div>
 
           <div>
-            <span className="text-neutral-500 block text-[11px] mb-0.5">WhatsApp</span>
+            <span className="text-neutral-500 block text-[11px] mb-0.5">Phone</span>
             <span className="font-semibold text-neutral-900 truncate block">
               {formData.phone}
             </span>
@@ -69,7 +69,7 @@ export default function StepSuccess({
         </div>
       </div>
 
-      {/* Buttons */}
+      {/* Action Buttons */}
       <div className="space-y-3">
         <a
           href={`https://wa.me/?text=${whatsappMessage}`}
@@ -78,7 +78,7 @@ export default function StepSuccess({
           className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-medium text-base py-3.5 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
         >
           <MessageCircle className="w-5 h-5 fill-current" />
-          <span>Message Us on WhatsApp</span>
+          <span>Message on WhatsApp</span>
         </a>
 
         <a
