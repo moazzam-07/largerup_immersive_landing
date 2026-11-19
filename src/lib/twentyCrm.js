@@ -120,11 +120,13 @@ export async function createTwentyLead({
 }
 
 /**
- * Updates an Opportunity stage to "MEETING_BOOKED" in both leadStatus and stage.
+ * Updates an Opportunity stage to "MEETING_BOOKED" in both leadStatus and stage,
+ * populates the "Meeting Booked Date & Time" (meetingBookedAt) field,
+ * and creates a Note containing the Google Meet link attached to the opportunity.
  */
 export async function updateTwentyLeadToMeetingBooked(
   opportunityId,
-  { bookingSlot = '', startTime = null } = {}
+  { bookingSlot = '', startTime = null, meetingUrl = '' } = {}
 ) {
   if (!opportunityId) {
     console.warn('[Twenty CRM] No opportunityId provided to update stage.');
@@ -132,10 +134,13 @@ export async function updateTwentyLeadToMeetingBooked(
   }
 
   try {
+    const bookedIsoTime = startTime || new Date().toISOString();
+
+    // 1. Update Opportunity: leadStatus, stage, and meetingBookedAt
     const patchPayload = {
       leadStatus: 'MEETING_BOOKED',
       stage: 'MEETING_BOOKED',
-      meetingBookedAt: startTime || new Date().toISOString(),
+      meetingBookedAt: bookedIsoTime,
     };
 
     const res = await fetch(`${TWENTY_BASE_URL}/rest/opportunities/${opportunityId}`, {
@@ -148,10 +153,58 @@ export async function updateTwentyLeadToMeetingBooked(
     });
 
     const data = await res.json();
-    console.log('[Twenty CRM] Updated to MEETING_BOOKED in Lead life & Pipeline:', data);
+    console.log('[Twenty CRM] Updated opportunity to MEETING_BOOKED with meetingBookedAt:', data);
+
+    // 2. Create Note with meeting link and details
+    const meetLink = meetingUrl || 'https://meet.google.com/demgrow-meet';
+    const noteText = `15-Min Strategy Walkthrough confirmed for ${bookingSlot || bookedIsoTime}.\nGoogle Meet Link: ${meetLink}`;
+
+    try {
+      const noteRes = await fetch(`${TWENTY_BASE_URL}/rest/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${TWENTY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          title: 'Scheduled Call & Meet Link',
+          bodyV2: {
+            blocknote: JSON.stringify([
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: noteText }],
+              },
+            ]),
+            markdown: noteText,
+          },
+        }),
+      });
+
+      const noteData = await noteRes.json();
+      const noteId = noteData?.data?.createNote?.id;
+
+      if (noteId) {
+        // 3. Attach Note to this Opportunity
+        await fetch(`${TWENTY_BASE_URL}/rest/noteTargets`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TWENTY_API_KEY}`,
+          },
+          body: JSON.stringify({
+            noteId,
+            targetOpportunityId: opportunityId,
+          }),
+        });
+        console.log('[Twenty CRM] Note with meeting link attached to Opportunity:', noteId);
+      }
+    } catch (noteErr) {
+      console.warn('[Twenty CRM] Note attachment notice:', noteErr);
+    }
+
     return data;
   } catch (err) {
-    console.warn('[Twenty CRM] Error updating opportunity stage:', err);
+    console.warn('[Twenty CRM] Error updating opportunity stage & note:', err);
     return null;
   }
 }

@@ -1,20 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
+import confetti from 'canvas-confetti';
 import StepProgressBar from './components/StepProgressBar';
 import StepName from './components/StepName';
 import StepStudioType from './components/StepStudioType';
 import StepCityGoal from './components/StepCityGoal';
 import StepContact from './components/StepContact';
 import StepWhyFree from './components/StepWhyFree';
-import StepCalendar from './components/StepCalendar';
+import StepSelectDate from './components/StepSelectDate';
+import StepSelectSlot from './components/StepSelectSlot';
 import StepSuccess from './components/StepSuccess';
 import { createTwentyLead, updateTwentyLeadToMeetingBooked } from './lib/twentyCrm';
+import { fetchAvailableSlots, createCalBooking } from './lib/calApi';
 
 export default function App() {
-  // Direct landing on Step 1: Name
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const containerRef = useRef(null);
   const twentyOppIdRef = useRef(null);
+
+  // Available slots for the 2-slide booking flow
+  const [availableDays, setAvailableDays] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -29,6 +36,16 @@ export default function App() {
   });
 
   const [bookingDetails, setBookingDetails] = useState(null);
+
+  // Pre-fetch available booking slots on mount
+  useEffect(() => {
+    fetchAvailableSlots().then((days) => {
+      setAvailableDays(days);
+      if (days && days.length > 0) {
+        setSelectedDate(days[0]);
+      }
+    });
+  }, []);
 
   // Smooth Apple / Uber style step transition
   useEffect(() => {
@@ -98,6 +115,7 @@ export default function App() {
         updateTwentyLeadToMeetingBooked(twentyOppIdRef.current, {
           bookingSlot: merged.bookingSlot,
           startTime: updatedData.startTime,
+          meetingUrl: updatedData.meetingUrl,
         }).catch((err) => {
           console.warn('Twenty CRM booking update note:', err);
         });
@@ -113,13 +131,71 @@ export default function App() {
     setCurrentStep((prev) => Math.max(1, prev - 1));
   };
 
+  // Custom booking completion handler
+  const handleSlotBooking = async (slot) => {
+    setIsSubmitting(true);
+
+    try {
+      // 1. Create booking in Cal.com via direct API
+      const bookingRes = await createCalBooking({
+        start: slot.time,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        studioName: formData.studioName,
+        city: formData.city,
+      });
+
+      const formattedTime = `${selectedDate?.dayLabel || ''} at ${slot.formatted}`;
+
+      const details = {
+        date: selectedDate?.dayLabel || 'Scheduled Date',
+        time: slot.formatted,
+        formatted: formattedTime,
+        meetingUrl: bookingRes?.meetingUrl || 'https://meet.google.com/demgrow-meet',
+        startTime: slot.time,
+      };
+
+      setBookingDetails(details);
+      setFormData((prev) => ({ ...prev, bookingSlot: formattedTime }));
+
+      // 2. Confetti celebration
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#000000', '#525252', '#a3a3a3'],
+      });
+
+      // 3. Update Twenty CRM Opportunity:
+      // - leadStatus: "MEETING_BOOKED" (Lead life)
+      // - stage: "MEETING_BOOKED" (Lead Pipeline)
+      // - meetingBookedAt: slot.time
+      // - Note attached with Google Meet link
+      dispatchLeadCapture({
+        stage: 'MEETING BOOKED',
+        bookingSlot: formattedTime,
+        startTime: slot.time,
+        meetingUrl: details.meetingUrl,
+      });
+
+      // Advance to celebration slide
+      setCurrentStep(8);
+    } catch (err) {
+      console.warn('Booking flow note:', err);
+      setCurrentStep(8);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
       {/* Top Apple / Uber Navigation */}
-      {currentStep < 7 && (
+      {currentStep < 8 && (
         <StepProgressBar
           currentStep={currentStep}
-          totalSteps={6}
+          totalSteps={7}
           onBack={handleBack}
           canGoBack={currentStep > 1}
         />
@@ -170,7 +246,6 @@ export default function App() {
               formData={formData}
               onSaveLead={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
-                // Dispatches as "NEW LEAD" to Twenty CRM & Webhook immediately in background
                 dispatchLeadCapture({ ...contactData, stage: 'NEW LEAD' });
               }}
               onNext={(contactData) => {
@@ -180,7 +255,7 @@ export default function App() {
             />
           )}
 
-          {/* Step 5: Why Complimentary & SEO/Maintenance Value */}
+          {/* Step 5: Why Complimentary & Video Testimonials Preview */}
           {currentStep === 5 && (
             <StepWhyFree
               name={formData.name}
@@ -188,28 +263,30 @@ export default function App() {
             />
           )}
 
-          {/* Step 6: Preloaded Cal.com Container:
-              Mounted immediately in background so iframe scripts are ready with 0s lag */}
-          <div style={{ display: currentStep === 6 ? 'block' : 'none' }}>
-            <StepCalendar
-              name={formData.name}
-              formData={formData}
-              onConfirmBooking={(booking) => {
-                setBookingDetails(booking);
-                setFormData((prev) => ({ ...prev, bookingSlot: booking.formatted }));
-                // Dispatches updated stage: "MEETING BOOKED" to Twenty CRM & Webhook in background
-                dispatchLeadCapture({
-                  stage: 'MEETING BOOKED',
-                  bookingSlot: booking.formatted,
-                  startTime: booking.raw?.startTime,
-                });
-                setCurrentStep(7);
+          {/* Step 6: Custom Slide 1 - Select Date (3 clean pills, ~140px tall, zero scroll) */}
+          {currentStep === 6 && (
+            <StepSelectDate
+              availableDays={availableDays}
+              selectedDate={selectedDate}
+              onSelectDate={(day) => {
+                setSelectedDate(day);
+                handleNext();
               }}
             />
-          </div>
+          )}
 
-          {/* Step 7: Booking Confirmed + Testimonials & Social Proof */}
+          {/* Step 7: Custom Slide 2 - Select Slot (2-column buttons, ~220px tall, zero scroll) */}
           {currentStep === 7 && (
+            <StepSelectSlot
+              selectedDate={selectedDate}
+              onBackToDate={() => setCurrentStep(6)}
+              onConfirmBooking={handleSlotBooking}
+              isSubmitting={isSubmitting}
+            />
+          )}
+
+          {/* Step 8: Booking Confirmed + Full Video Testimonials Showcase */}
+          {currentStep === 8 && (
             <StepSuccess
               formData={formData}
               bookingDetails={bookingDetails}
