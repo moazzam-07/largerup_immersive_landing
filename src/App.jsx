@@ -34,12 +34,12 @@ export default function App() {
         containerRef.current,
         {
           opacity: 0,
-          y: 10,
+          y: 8,
         },
         {
           opacity: 1,
           y: 0,
-          duration: 0.25,
+          duration: 0.22,
           ease: 'power2.out',
         }
       );
@@ -47,20 +47,28 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Lead capture webhook - fire and forget, background execution
+  // Lead Lifecycle Webhook & CRM Sync (Non-blocking background execution)
   const sendLeadWebhook = (updatedData = {}) => {
     const merged = { ...formData, ...updatedData };
+    const currentStage = updatedData.stage || 'NEW LEAD';
+
     const payload = {
       fullName: merged.name || 'Interior Professional',
       email: merged.email || '',
       phone: merged.phone || '',
       role: merged.role || 'Interior Studio',
-      notes: `Studio: ${merged.studioName || 'N/A'} | City: ${merged.city || 'N/A'} | Slot: ${merged.bookingSlot || 'Pending'}`,
+      studioName: merged.studioName || '',
+      city: merged.city || '',
+      // Kanban stage for CRM: "NEW LEAD" or "MEETING BOOKED"
+      stage: currentStage,
+      status: currentStage,
+      bookingSlot: merged.bookingSlot || (currentStage === 'MEETING BOOKED' ? 'Booked via Cal.com' : 'Pending'),
+      notes: `Studio: ${merged.studioName || 'N/A'} | City: ${merged.city || 'N/A'} | Stage: ${currentStage} | Slot: ${merged.bookingSlot || 'Pending'}`,
       submittedAt: new Date().toISOString(),
       source: 'LargerUp Customer Onboarding Flow',
     };
 
-    // Non-blocking fetch
+    // 1. Dispatch to Webhook / Evolution WhatsApp API in background
     fetch(
       'https://moazzammasood5--largerup-lead-webhook-submit-lead.us-east.modal.run',
       {
@@ -71,6 +79,20 @@ export default function App() {
     ).catch((err) => {
       console.warn('Background webhook dispatch note:', err);
     });
+
+    // 2. Dispatch to Twenty CRM (when API endpoint is active)
+    syncToTwentyCRM(payload);
+  };
+
+  // Twenty CRM sync helper
+  const syncToTwentyCRM = (payload) => {
+    try {
+      // Prepared for Twenty CRM opportunities / leads endpoint
+      window.__latestLead = payload;
+      console.log(`[CRM Sync] Stage: ${payload.stage} | Lead:`, payload);
+    } catch (err) {
+      console.warn('CRM sync error:', err);
+    }
   };
 
   const handleNext = () => {
@@ -134,7 +156,8 @@ export default function App() {
               formData={formData}
               onSaveLead={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
-                sendLeadWebhook(contactData);
+                // Dispatches as "NEW LEAD" in background immediately
+                sendLeadWebhook({ ...contactData, stage: 'NEW LEAD' });
               }}
               onNext={(contactData) => {
                 setFormData((prev) => ({ ...prev, ...contactData }));
@@ -143,7 +166,9 @@ export default function App() {
             />
           )}
 
-          {currentStep === 5 && (
+          {/* Preloaded Cal.com Container:
+              Mounted immediately in background so iframe scripts are ready with 0s lag */}
+          <div style={{ display: currentStep === 5 ? 'block' : 'none' }}>
             <StepCalendar
               name={formData.name}
               formData={formData}
@@ -151,11 +176,12 @@ export default function App() {
               onConfirmBooking={(booking) => {
                 setBookingDetails(booking);
                 setFormData((prev) => ({ ...prev, bookingSlot: booking.formatted }));
-                sendLeadWebhook({ bookingSlot: booking.formatted });
+                // Dispatches updated stage: "MEETING BOOKED" in background
+                sendLeadWebhook({ stage: 'MEETING BOOKED', bookingSlot: booking.formatted });
                 setCurrentStep(6);
               }}
             />
-          )}
+          </div>
 
           {currentStep === 6 && (
             <StepSuccess

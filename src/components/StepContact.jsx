@@ -10,37 +10,46 @@ export default function StepContact({
     formData.rawPhone || formData.phone?.replace(/[^0-9]/g, '').slice(-10) || ''
   );
   const [email, setEmail] = useState(formData.email || '');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
 
   const handlePhoneChange = (e) => {
     const cleaned = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
     setPhone(cleaned);
-    if (error) setError('');
+    if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
 
     if (!phone || phone.length < 10) {
-      setError('Please enter a valid 10-digit phone number');
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      newErrors.email = 'Please enter a valid business email address';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    setError('');
+    setErrors({});
 
     const contactData = {
       phone: `+91 ${phone}`,
       rawPhone: phone,
-      email: email.trim() || `${phone}@interior-lead.largerup.com`,
+      email: email.trim(),
     };
 
-    // Non-blocking fire-and-forget background webhook dispatch:
-    // We do NOT await Evolution WhatsApp API / CRM triggers here so the UI advances instantaneously in 0ms!
+    // Non-blocking background dispatch (no await):
+    // Dispatches lead as "NEW LEAD" in background without blocking UI
     if (onSaveLead) {
       try {
         onSaveLead(contactData);
@@ -49,7 +58,7 @@ export default function StepContact({
       }
     }
 
-    // Advance immediately without waiting
+    // Advance to schedule step immediately
     onNext(contactData);
   };
 
@@ -66,7 +75,7 @@ export default function StepContact({
         {/* Phone Input */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            Phone Number
+            Phone Number <span className="text-red-500">*</span>
           </label>
           <div className="relative flex items-center">
             <div className="absolute left-4 flex items-center gap-1.5 text-neutral-900 font-semibold text-base border-r border-neutral-200 pr-3 py-1 pointer-events-none">
@@ -82,31 +91,32 @@ export default function StepContact({
               className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl pl-24 pr-5 py-4 text-lg font-semibold tracking-wide text-neutral-900 placeholder:text-neutral-400 placeholder:font-normal focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150"
             />
           </div>
+          {errors.phone && (
+            <p className="text-xs text-red-500 font-medium mt-1.5 px-1">
+              {errors.phone}
+            </p>
+          )}
         </div>
 
-        {/* Email Input */}
+        {/* Email Input (Compulsory) */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            Email address <span className="text-neutral-400 font-normal lowercase">(optional)</span>
+            Email address <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error) setError('');
-            }}
-            placeholder="e.g. hello@yourstudio.com"
+            onChange={handleEmailChange}
+            placeholder="e.g. contact@yourstudio.com"
             autoComplete="email"
-            className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-3.5 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150"
+            className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-4 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150"
           />
+          {errors.email && (
+            <p className="text-xs text-red-500 font-medium mt-1.5 px-1">
+              {errors.email}
+            </p>
+          )}
         </div>
-
-        {error && (
-          <p className="text-xs text-red-500 font-medium px-1">
-            {error}
-          </p>
-        )}
 
         {/* Privacy Note */}
         <div className="flex items-center gap-2 text-xs text-neutral-500 pt-1">

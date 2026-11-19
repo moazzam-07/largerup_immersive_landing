@@ -15,7 +15,7 @@ export default function StepCalendar({
         cal('ui', {
           theme: 'light',
           styles: { branding: { brandColor: '#171717' } },
-          hideEventTypeDetails: false,
+          hideEventTypeDetails: true, // Hides header, title, and description block completely!
           layout: 'month_view',
         });
 
@@ -52,23 +52,23 @@ export default function StepCalendar({
   }, [onConfirmBooking]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
-      <div className="px-2 mb-4">
-        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-1.5">
-          Schedule your 15-min call.
+    <div className="w-full max-w-xl mx-auto px-4 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
+      <div className="px-2 mb-3">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1">
+          Pick a 15-min call time.
         </h1>
-        <p className="text-sm text-neutral-500">
-          Select an available slot on our calendar to review your studio project blueprint.
+        <p className="text-xs sm:text-sm text-neutral-500">
+          Select an available slot over the next 3 days to review your studio website.
         </p>
       </div>
 
-      {/* Cal.com Official Embed Container */}
-      <div className="w-full bg-white rounded-2xl border border-neutral-200/90 overflow-hidden shadow-sm min-h-[580px] mb-4">
+      {/* Cal.com Official Embed Container - Compact and Clean */}
+      <div className="w-full bg-white rounded-2xl border border-neutral-200/90 overflow-hidden shadow-sm min-h-[520px] mb-3">
         <Cal
           calLink="demgrow-kf1eni/15min"
-          style={{ width: '100%', height: '100%', minHeight: '580px', overflow: 'auto' }}
+          style={{ width: '100%', height: '100%', minHeight: '520px', overflow: 'auto' }}
           config={{
-            name: formData?.name || name,
+            name: formData?.name || name || '',
             email: formData?.email || '',
             notes: `Studio: ${formData?.studioName || 'N/A'} | City: ${formData?.city || 'N/A'} | Phone: ${formData?.phone || 'N/A'}`,
             theme: 'light',
@@ -76,16 +76,16 @@ export default function StepCalendar({
         />
       </div>
 
-      {/* Helpful direct link in case iframe cookies are blocked on certain mobile browsers */}
+      {/* Direct Fallback link */}
       <div className="px-2 flex items-center justify-between text-xs text-neutral-400">
-        <span>Direct Cal.com Scheduling</span>
+        <span>Direct Calendar Link</span>
         <a
           href="https://cal.com/demgrow-kf1eni/15min"
           target="_blank"
           rel="noopener noreferrer"
           className="text-neutral-700 hover:text-black flex items-center gap-1 underline underline-offset-2"
         >
-          <span>Open calendar in new tab</span>
+          <span>Open in new tab</span>
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>
