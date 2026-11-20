@@ -45,9 +45,6 @@ export default function PortfolioCreations() {
     <section className="w-full mb-12 sm:mb-16">
       {/* Section Header */}
       <div className="w-full text-center max-w-2xl mx-auto mb-6 sm:mb-8">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200/60 mb-2.5 inline-block">
-          Recent Studio Work
-        </span>
         <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-neutral-900 leading-tight mb-2">
           Websites we've engineered for interior studios
         </h2>

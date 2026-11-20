@@ -216,20 +216,39 @@ export async function createCalBooking({
 }
 
 /**
- * Smart default slots for days where Cal.com has no predefined slots.
+ * Smart default slots aligned with Cal.com working hours:
+ * - Saturday & Sunday: 11:00 AM to 08:00 PM (1-hour gap)
+ * - Monday - Friday: 04:00 PM to 08:00 PM (1-hour gap)
  * If nowDate is passed (for Today), filters out hours that have already passed.
  */
 function getDefaultDaySlots(dateStr, nowDate = null) {
-  const times = [
-    '11:30 AM',
-    '12:15 PM',
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const targetDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const dayOfWeek = targetDate.getUTCDay(); // 0 is Sunday, 6 is Saturday
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  const weekendTimes = [
+    '11:00 AM',
+    '12:00 PM',
+    '01:00 PM',
     '02:00 PM',
-    '03:30 PM',
-    '04:30 PM',
-    '06:30 PM',
+    '03:00 PM',
+    '04:00 PM',
+    '05:00 PM',
+    '06:00 PM',
+    '07:00 PM',
     '08:00 PM',
-    '10:00 PM',
   ];
+
+  const weekdayTimes = [
+    '04:00 PM',
+    '05:00 PM',
+    '06:00 PM',
+    '07:00 PM',
+    '08:00 PM',
+  ];
+
+  const times = isWeekend ? weekendTimes : weekdayTimes;
 
   const slots = times.map((t) => {
     return {
