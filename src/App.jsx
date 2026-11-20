@@ -15,6 +15,7 @@ import StepSelectSlot from './components/StepSelectSlot';
 import StepSuccess from './components/StepSuccess';
 import { createTwentyLead, updateTwentyLeadToMeetingBooked } from './lib/twentyCrm';
 import { fetchAvailableSlots, createCalBooking } from './lib/calApi';
+import { trackLeadEvent, trackScheduleEvent, trackStepView } from './lib/metaPixel';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -69,6 +70,7 @@ export default function App() {
       );
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    trackStepView(currentStep);
   }, [currentStep]);
 
   // Lead Lifecycle Dispatcher (Non-blocking background execution)
@@ -103,8 +105,9 @@ export default function App() {
       console.warn('Background webhook dispatch note:', err);
     });
 
-    // 2. Dispatch to Twenty CRM
+    // 2. Dispatch to Twenty CRM & Meta Pixel
     if (currentStage === 'NEW LEAD') {
+      trackLeadEvent(merged);
       createTwentyLead(merged)
         .then((res) => {
           if (res?.opportunityId) {
@@ -171,7 +174,18 @@ export default function App() {
         colors: ['#000000', '#525252', '#a3a3a3'],
       });
 
-      // 3. Update Twenty CRM Opportunity:
+      // 3. Track Schedule conversion event in Meta Pixel
+      trackScheduleEvent({
+        bookingSlot: formattedTime,
+        startTime: slot.time,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        city: formData.city,
+        studioName: formData.studioName,
+      });
+
+      // 4. Update Twenty CRM Opportunity:
       // - leadStatus: "MEETING_BOOKED" (Lead life)
       // - stage: "MEETING_BOOKED" (Lead Pipeline)
       // - meetingBookedAt: slot.time
