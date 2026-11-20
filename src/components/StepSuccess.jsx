@@ -10,6 +10,7 @@ import {
 import VideoTestimonials from './VideoTestimonials';
 import VideoModal from './VideoModal';
 import WhatsAppIcon from './WhatsAppIcon';
+import PortfolioCreations from './PortfolioCreations';
 
 export default function StepSuccess({ formData, bookingDetails }) {
   const clientFirstName = formData.name ? formData.name.split(' ')[0] : 'there';
@@ -168,6 +169,12 @@ export default function StepSuccess({ formData, bookingDetails }) {
           </a>
         </div>
       </div>
+
+      {/* Showcase Real Interior Studio Websites Engineered by LargerUp */}
+      <PortfolioCreations />
+
+      {/* Divider */}
+      <div className="w-full border-t border-neutral-100 mb-10 sm:mb-14" />
 
       {/* Main Testimonials Slide Content — 100% Fully Visible At Last */}
       <div className="w-full text-center max-w-2xl mx-auto mb-6 sm:mb-8">
