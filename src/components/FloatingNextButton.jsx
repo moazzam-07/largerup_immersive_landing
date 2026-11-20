@@ -4,16 +4,16 @@ import { ArrowRight } from 'lucide-react';
 
 /**
  * Floating Next Button for long / scrollable slides.
- * Portaled to document.body to remain strictly anchored to the viewport.
- * Features generous padding, margin, and typography.
- * Smoothly dissolves into the inline button as the user scrolls down to it.
+ * Floats at bottom-right with generous padding and margins.
+ * When the user scrolls down to the inline button, it animates across the screen,
+ * gliding directly towards the center and converging seamlessly into the inline button.
  */
 export default function FloatingNextButton({
   targetRef,
   onClick,
-  label = 'Continue',
+  label = 'Pick a Date',
 }) {
-  const [show, setShow] = useState(false);
+  const [isIntersecting, setIsIntersecting] = useState(false);
 
   useEffect(() => {
     const el = targetRef?.current;
@@ -22,22 +22,20 @@ export default function FloatingNextButton({
     // Check visibility using IntersectionObserver
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // If inline button is in viewport, hide floating button
-        // If inline button is scrolled off-screen, display floating button
-        setShow(!entry.isIntersecting);
+        setIsIntersecting(entry.isIntersecting);
       },
       {
-        threshold: 0.1,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.15,
+        rootMargin: '0px 0px -20px 0px',
       }
     );
 
     observer.observe(el);
 
-    // Initial check in case observer hasn't fired yet
+    // Initial check on mount
     const rect = el.getBoundingClientRect();
     const inView = rect.top < window.innerHeight && rect.bottom >= 0;
-    setShow(!inView);
+    setIsIntersecting(inView);
 
     return () => observer.disconnect();
   }, [targetRef]);
@@ -48,10 +46,10 @@ export default function FloatingNextButton({
     <button
       type="button"
       onClick={onClick}
-      className={`fixed bottom-8 right-6 sm:bottom-9 sm:right-8 z-40 bg-neutral-900 hover:bg-black text-white font-semibold text-sm py-3.5 px-6 rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.35)] flex items-center gap-2.5 transition-all duration-300 active:scale-95 border border-white/15 backdrop-blur-md cursor-pointer ${
-        show
-          ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-          : 'opacity-0 scale-75 translate-y-4 pointer-events-none'
+      className={`fixed bottom-8 right-6 sm:bottom-9 sm:right-8 z-40 bg-neutral-900 hover:bg-black text-white font-semibold text-sm py-3.5 px-6 rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.35)] flex items-center gap-2.5 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-95 border border-white/15 backdrop-blur-md cursor-pointer ${
+        !isIntersecting
+          ? 'opacity-100 translate-x-0 translate-y-0 scale-100 pointer-events-auto'
+          : 'opacity-0 -translate-x-[calc(50vw-50%-1.5rem)] -translate-y-2 scale-110 pointer-events-none'
       }`}
       aria-label={label}
     >
