@@ -7,6 +7,7 @@ import StepStudioType from './components/StepStudioType';
 import StepCityGoal from './components/StepCityGoal';
 import StepContact from './components/StepContact';
 import StepWhyFree from './components/StepWhyFree';
+import StepReviews from './components/StepReviews';
 import StepSelectDate from './components/StepSelectDate';
 import StepSelectSlot from './components/StepSelectSlot';
 import StepSuccess from './components/StepSuccess';
@@ -180,10 +181,10 @@ export default function App() {
       });
 
       // Advance to celebration slide
-      setCurrentStep(8);
+      setCurrentStep(9);
     } catch (err) {
       console.warn('Booking flow note:', err);
-      setCurrentStep(8);
+      setCurrentStep(9);
     } finally {
       setIsSubmitting(false);
     }
@@ -192,10 +193,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
       {/* Top Apple / Uber Navigation */}
-      {currentStep < 8 && (
+      {currentStep < 9 && (
         <StepProgressBar
           currentStep={currentStep}
-          totalSteps={7}
+          totalSteps={8}
           onBack={handleBack}
           canGoBack={currentStep > 1}
         />
@@ -255,16 +256,22 @@ export default function App() {
             />
           )}
 
-          {/* Step 5: Why Complimentary & Video Testimonials Preview */}
+          {/* Step 5: Why Complimentary (Ultra-crisp & concise, no videos) */}
           {currentStep === 5 && (
             <StepWhyFree
-              name={formData.name}
               onNext={handleNext}
             />
           )}
 
-          {/* Step 6: Custom Slide 1 - Select Date (3 clean pills, ~140px tall, zero scroll) */}
+          {/* Step 6: Dedicated Client Reviews Video Slide (Before Calendar) */}
           {currentStep === 6 && (
+            <StepReviews
+              onNext={handleNext}
+            />
+          )}
+
+          {/* Step 7: Custom Slide 1 - Select Date (3 clean pills, ~140px tall, zero scroll) */}
+          {currentStep === 7 && (
             <StepSelectDate
               availableDays={availableDays}
               selectedDate={selectedDate}
@@ -275,18 +282,18 @@ export default function App() {
             />
           )}
 
-          {/* Step 7: Custom Slide 2 - Select Slot (2-column buttons, ~220px tall, zero scroll) */}
-          {currentStep === 7 && (
+          {/* Step 8: Custom Slide 2 - Select Slot (2-column buttons, ~220px tall, zero scroll) */}
+          {currentStep === 8 && (
             <StepSelectSlot
               selectedDate={selectedDate}
-              onBackToDate={() => setCurrentStep(6)}
+              onBackToDate={() => setCurrentStep(7)}
               onConfirmBooking={handleSlotBooking}
               isSubmitting={isSubmitting}
             />
           )}
 
-          {/* Step 8: Booking Confirmed + Full Video Testimonials Showcase */}
-          {currentStep === 8 && (
+          {/* Step 9: Booking Confirmed + Full Video Testimonials Showcase */}
+          {currentStep === 9 && (
             <StepSuccess
               formData={formData}
               bookingDetails={bookingDetails}

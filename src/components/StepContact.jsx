@@ -69,10 +69,10 @@ export default function StepContact({
         onComplete={() => setQ1Done(true)}
         className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2 block"
       >
-        Where should we send your site preview?
+        Where should we communicate with you?
       </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We'll send your website design link directly to your mobile and email.
+        We'll reach out to coordinate your walkthrough and share updates directly.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
