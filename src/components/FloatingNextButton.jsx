@@ -4,14 +4,14 @@ import { ArrowRight } from 'lucide-react';
 
 /**
  * Floating Next Button for long / scrollable slides.
- * Uses createPortal to escape CSS containing block traps (e.g. animate-blur-in filters/transforms),
- * ensuring it stays fixed to the actual mobile viewport.
+ * Portaled to document.body to remain strictly anchored to the viewport.
+ * Features generous padding, margin, and typography.
  * Smoothly dissolves into the inline button as the user scrolls down to it.
  */
 export default function FloatingNextButton({
   targetRef,
   onClick,
-  label = 'Next',
+  label = 'Continue',
 }) {
   const [show, setShow] = useState(false);
 
@@ -48,7 +48,7 @@ export default function FloatingNextButton({
     <button
       type="button"
       onClick={onClick}
-      className={`fixed bottom-6 right-5 z-40 bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3 px-4.5 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.35)] flex items-center gap-2 transition-all duration-300 active:scale-95 border border-white/20 backdrop-blur-md cursor-pointer ${
+      className={`fixed bottom-8 right-6 sm:bottom-9 sm:right-8 z-40 bg-neutral-900 hover:bg-black text-white font-semibold text-sm py-3.5 px-6 rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.35)] flex items-center gap-2.5 transition-all duration-300 active:scale-95 border border-white/15 backdrop-blur-md cursor-pointer ${
         show
           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 scale-75 translate-y-4 pointer-events-none'

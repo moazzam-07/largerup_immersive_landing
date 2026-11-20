@@ -50,7 +50,7 @@ export default function StepReviews({ onNext }) {
       <FloatingNextButton
         targetRef={bottomButtonRef}
         onClick={onNext}
-        label="Pick Date"
+        label="Pick a Date"
       />
 
       {/* Primary Inline Continue Action */}
