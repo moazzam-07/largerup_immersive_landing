@@ -21,9 +21,11 @@ export default function StepSuccess({ formData, bookingDetails }) {
   const [modalInitialTime, setModalInitialTime] = useState(0);
   const [modalMuted, setModalMuted] = useState(false);
 
+  const WHATSAPP_PHONE = '919748301670';
   const whatsappMessage = encodeURIComponent(
     `Hi LargerUp team, I'm ${formData.name} from ${formData.studioName || formData.name}. Our call is confirmed for ${bookingDetails?.formatted || 'our scheduled call'}.`
   );
+  const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${whatsappMessage}`;
 
   // Auto-dismiss overlay after 3 seconds on initial mount, but NOT when manually opened via "Booking Details"
   useEffect(() => {
@@ -128,7 +130,7 @@ export default function StepSuccess({ formData, bookingDetails }) {
 
               {/* Black & White WhatsApp Button with Official WhatsApp Icon */}
               <a
-                href={`https://wa.me/?text=${whatsappMessage}`}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3.5 px-4 rounded-full flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] mb-3"
@@ -192,7 +194,7 @@ export default function StepSuccess({ formData, bookingDetails }) {
             Booking Details
           </button>
           <a
-            href={`https://wa.me/?text=${whatsappMessage}`}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-neutral-900 hover:bg-black text-white px-3 py-1.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
@@ -242,7 +244,7 @@ export default function StepSuccess({ formData, bookingDetails }) {
           </p>
         </div>
         <a
-          href={`https://wa.me/?text=${whatsappMessage}`}
+          href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full sm:w-auto bg-neutral-900 hover:bg-black text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-full transition-all shrink-0 active:scale-95 inline-flex items-center justify-center gap-2 shadow-sm"
