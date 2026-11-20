@@ -9,14 +9,10 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
   const [q1Done, setQ1Done] = useState(false);
 
   const quickCities = [
+    'Kolkata',
     'Mumbai',
     'Delhi NCR',
     'Bangalore',
-    'Hyderabad',
-    'Pune',
-    'Kolkata',
-    'Chennai',
-    'Ahmedabad',
   ];
 
   const handleSubmit = (e) => {
@@ -70,7 +66,7 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
               setCity(e.target.value);
               if (errors.city) setErrors((prev) => ({ ...prev, city: '' }));
             }}
-            placeholder="e.g. Mumbai, Bangalore, Kolkata..."
+            placeholder="e.g. Kolkata, Mumbai, Bangalore..."
             className="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-2xl px-5 py-4 text-base font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/5 transition-all duration-150 mb-3"
           />
 

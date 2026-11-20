@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Highlighter } from './ui/highlighter';
 import LargerUpLogo from './LargerUpLogo';
 
@@ -15,17 +15,17 @@ export default function IntroEntrance({ onComplete }) {
     // 1. Enter and reveal text
     const highlightTimer = setTimeout(() => {
       setPhase('highlighting');
-    }, 600);
+    }, 500);
 
     // 2. Trigger fast blur + noise exit transition
     const exitTimer = setTimeout(() => {
       setPhase('exiting');
-    }, 1700);
+    }, 1600);
 
     // 3. Complete and unmount overlay
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 2200);
+    }, 2050);
 
     return () => {
       clearTimeout(highlightTimer);
@@ -39,7 +39,7 @@ export default function IntroEntrance({ onComplete }) {
     setPhase('exiting');
     setTimeout(() => {
       onComplete();
-    }, 250);
+    }, 220);
   };
 
   return (
@@ -70,12 +70,12 @@ export default function IntroEntrance({ onComplete }) {
       {/* Soft Ambient Radial Vignette */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_40%,rgba(0,0,0,0.02)_0%,transparent_70%)]" />
 
-      {/* Top Bar Branding */}
+      {/* Top Bar Branding (Clean without badge) */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-lg flex items-center justify-between relative z-10"
+        className="w-full max-w-lg flex items-center justify-start relative z-10"
       >
         <div className="flex items-center gap-2.5">
           <LargerUpLogo className="w-6 h-6 text-neutral-900" />
@@ -83,30 +83,16 @@ export default function IntroEntrance({ onComplete }) {
             LargerUp
           </span>
         </div>
-        <span className="text-[10px] uppercase font-semibold tracking-widest text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200/60">
-          Studio Grant 2026
-        </span>
       </motion.div>
 
       {/* Center Cinematic Content */}
       <div className="flex flex-col items-center justify-center text-center max-w-xl mx-auto my-auto relative z-10">
-        {/* Eyebrow */}
-        <motion.div
-          initial={{ opacity: 0, y: 12, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100/90 border border-neutral-200/70 text-xs font-medium text-neutral-700 mb-6 shadow-2xs"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 animate-pulse" />
-          <span>Exclusive for Interior Designers & Architects</span>
-        </motion.div>
-
         {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 16, filter: 'blur(12px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.55, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-900 leading-[1.12] mb-5"
+          transition={{ duration: 0.55, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-900 leading-[1.15] mb-4"
         >
           <span>Claim your </span>
           <span className="relative inline-block whitespace-nowrap">
@@ -116,7 +102,7 @@ export default function IntroEntrance({ onComplete }) {
                 color="#fef08a"
                 strokeWidth={2}
                 padding={4}
-                animationDuration={650}
+                animationDuration={600}
               >
                 free website.
               </Highlighter>
@@ -126,14 +112,14 @@ export default function IntroEntrance({ onComplete }) {
           </span>
         </motion.h1>
 
-        {/* Subtitle */}
+        {/* Subtitle - Transparent Value Exchange */}
         <motion.p
           initial={{ opacity: 0, y: 12, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.5, delay: 0.45 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
           className="text-sm sm:text-base text-neutral-500 max-w-md mx-auto leading-relaxed"
         >
-          Zero upfront cost. We build your custom high-converting studio website in exchange for your honest video review.
+          We build your custom high-converting studio website in exchange for your honest video review.
         </motion.p>
       </div>
 
@@ -141,7 +127,7 @@ export default function IntroEntrance({ onComplete }) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.8 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
         className="w-full max-w-lg flex items-center justify-between text-[11px] text-neutral-400 relative z-10"
       >
         <span className="flex items-center gap-1.5">
