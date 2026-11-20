@@ -4,6 +4,7 @@ import {
   Calendar,
   X,
   ArrowRight,
+  ArrowUpRight,
 } from 'lucide-react';
 import VideoTestimonials from './VideoTestimonials';
 import VideoModal from './VideoModal';
@@ -218,6 +219,20 @@ export default function StepSuccess({ formData, bookingDetails }) {
         initialMuted={modalMuted}
         onClose={handleCloseModal}
       />
+
+      {/* Floating Action Button to Visit Full Interior Landing Page */}
+      {!showOverlay && (
+        <a
+          href="https://interiors.largerup.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-5 z-40 bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3 px-4.5 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.35)] flex items-center gap-2 transition-all duration-300 active:scale-95 border border-white/20 backdrop-blur-md group animate-fade-in"
+          aria-label="View full interior landing page on interiors.largerup.com"
+        >
+          <span>View Full Website</span>
+          <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </a>
+      )}
     </div>
   );
 }

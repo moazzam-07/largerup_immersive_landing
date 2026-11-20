@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import VideoTestimonials from './VideoTestimonials';
 import VideoModal from './VideoModal';
 import { TypingAnimation } from './ui/typing-animation';
+import FloatingNextButton from './FloatingNextButton';
 
 export default function StepReviews({ onNext }) {
   const [modalVideo, setModalVideo] = useState(null);
   const [modalInitialTime, setModalInitialTime] = useState(0);
   const [modalMuted, setModalMuted] = useState(false);
+  const bottomButtonRef = useRef(null);
 
   const handleOpenModal = (item, curTime = 0, isMuted = false) => {
     setModalVideo(item);
@@ -21,7 +23,7 @@ export default function StepReviews({ onNext }) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
+    <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-8 flex flex-col text-left animate-blur-in relative">
       {/* Title & Subtitle */}
       <div className="w-full text-center max-w-2xl mx-auto mb-6 sm:mb-8">
         <TypingAnimation
@@ -44,8 +46,15 @@ export default function StepReviews({ onNext }) {
         hideCta={true}
       />
 
-      {/* Continue Action */}
-      <div className="w-full max-w-md mx-auto mt-6 sm:mt-8">
+      {/* Floating Action Button (Visible when scrolled away from bottom button) */}
+      <FloatingNextButton
+        targetRef={bottomButtonRef}
+        onClick={onNext}
+        label="Pick Date"
+      />
+
+      {/* Primary Inline Continue Action */}
+      <div ref={bottomButtonRef} className="w-full max-w-md mx-auto mt-6 sm:mt-8">
         <button
           type="button"
           onClick={onNext}

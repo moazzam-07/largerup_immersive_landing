@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import { TypingAnimation } from './ui/typing-animation';
+import FloatingNextButton from './FloatingNextButton';
 
 export default function StepWhyFree({ onNext }) {
+  const bottomButtonRef = useRef(null);
+
   return (
-    <div className="w-full max-w-lg mx-auto px-5 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
+    <div className="w-full max-w-lg mx-auto px-5 py-4 sm:py-8 flex flex-col text-left animate-blur-in relative">
       {/* Title & Subtitle */}
       <div className="mb-6">
         <TypingAnimation
@@ -59,15 +62,24 @@ export default function StepWhyFree({ onNext }) {
         <span>You own 100% of your website code, domain, and photos.</span>
       </div>
 
-      {/* Single Clear CTA Button */}
-      <button
-        type="button"
+      {/* Floating Next Button if scrolled away on small screens */}
+      <FloatingNextButton
+        targetRef={bottomButtonRef}
         onClick={onNext}
-        className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-base py-4 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 group shadow-sm"
-      >
-        <span>See Client Results</span>
-        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-      </button>
+        label="See Results"
+      />
+
+      {/* Primary Inline CTA Button */}
+      <div ref={bottomButtonRef} className="w-full">
+        <button
+          type="button"
+          onClick={onNext}
+          className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-base py-4 px-6 rounded-full transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 group shadow-sm"
+        >
+          <span>See Client Results</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        </button>
+      </div>
     </div>
   );
 }
