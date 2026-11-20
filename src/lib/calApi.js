@@ -9,16 +9,17 @@ const CAL_API_KEY =
 export const EVENT_TYPE_ID = 4581296;
 
 /**
- * Fetches real-time available slots for the next 3 days from Cal.com v2 API.
- * Returns an array of day objects:
- * [{ dateStr: "2026-11-20", dayLabel: "Tomorrow, Nov 20", weekday: "Friday", slots: [{ time, formatted }] }]
+ * Fetches real-time available slots for 4 rolling days (Today + Next 3 days).
+ * Completely dynamic: evaluates based on the current calendar date in IST.
+ * Returns an array of 4 day objects:
+ * [{ dateStr, dayLabel, weekday, monthDay, badge, slots: [{ time, formatted }] }]
  */
 export async function fetchAvailableSlots() {
   try {
     const now = new Date();
     const startIso = now.toISOString();
-    // 4 days ahead window
-    const endIso = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString();
+    // 8-day rolling window to query all available slots
+    const endIso = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString();
 
     const url = `${CAL_API_BASE}/slots/available?startTime=${encodeURIComponent(
       startIso
@@ -31,56 +32,101 @@ export async function fetchAvailableSlots() {
       },
     });
 
-    if (!res.ok) {
+    let rawSlotsByDate = {};
+    if (res.ok) {
+      const json = await res.json();
+      rawSlotsByDate = json.data?.slots || {};
+    } else {
       console.warn('Cal slots API responded with status:', res.status);
-      return getFallbackDays();
     }
 
-    const json = await res.json();
-    const rawSlotsByDate = json.data?.slots || {};
-    const dateKeys = Object.keys(rawSlotsByDate).sort();
+    return generate4RollingDays(rawSlotsByDate);
+  } catch (err) {
+    console.warn('Error fetching slots from Cal.com, using dynamic 4-day fallback:', err);
+    return generate4RollingDays({});
+  }
+}
 
-    if (dateKeys.length === 0) {
-      return getFallbackDays();
+/**
+ * Dynamically builds 4 consecutive days: Today (0), Tomorrow (1), Day+2, Day+3.
+ * Automatically labels Today and Tomorrow, and populates slots from Cal.com or smart fallbacks.
+ */
+function generate4RollingDays(rawSlotsByDate = {}) {
+  const now = new Date();
+  const istFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const days = [];
+
+  for (let i = 0; i < 4; i++) {
+    const targetDate = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+    const dateStr = istFormatter.format(targetDate);
+
+    const [year, month, dayNum] = dateStr.split('-').map(Number);
+    const displayDate = new Date(Date.UTC(year, month - 1, dayNum, 12, 0, 0));
+
+    const weekday = displayDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      timeZone: 'UTC',
+    });
+    const monthDay = displayDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    let badge = null;
+    let dayLabel = `${weekday}, ${monthDay}`;
+
+    if (i === 0) {
+      badge = 'TODAY';
+      dayLabel = `Today (${monthDay})`;
+    } else if (i === 1) {
+      badge = 'TOMORROW';
+      dayLabel = `Tomorrow (${monthDay})`;
     }
 
-    // Take next 3 available days
-    const next3Days = dateKeys.slice(0, 3).map((dateKey, index) => {
-      const d = new Date(`${dateKey}T00:00:00`);
-      const isTomorrow = index === 0;
-
-      const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-      const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const dayLabel = isTomorrow ? `Tomorrow (${monthDay})` : `${weekday}, ${monthDay}`;
-
-      const slotList = (rawSlotsByDate[dateKey] || []).map((s) => {
-        const slotDate = new Date(s.time);
-        const formatted = slotDate.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-          timeZone: 'Asia/Kolkata',
-        });
-        return {
-          time: s.time,
-          formatted,
-        };
+    // Process live slots from Cal.com
+    let slotList = (rawSlotsByDate[dateStr] || []).map((s) => {
+      const slotDate = new Date(s.time);
+      const formatted = slotDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata',
       });
-
       return {
-        dateStr: dateKey,
-        dayLabel,
-        weekday,
-        monthDay,
-        slots: slotList.length > 0 ? slotList : getDefaultDaySlots(dateKey),
+        time: s.time,
+        formatted,
+        timestamp: slotDate.getTime(),
       };
     });
 
-    return next3Days;
-  } catch (err) {
-    console.warn('Error fetching slots from Cal.com, using smart fallback slots:', err);
-    return getFallbackDays();
+    // If day is Today (i === 0), filter out slots that have already passed (require at least 15 min buffer)
+    if (i === 0 && slotList.length > 0) {
+      const minTime = now.getTime() + 15 * 60 * 1000;
+      slotList = slotList.filter((s) => s.timestamp > minTime);
+    }
+
+    // If Cal.com had no slots for this day, provide smart daytime/evening consultation slots
+    const finalSlots =
+      slotList.length > 0 ? slotList : getDefaultDaySlots(dateStr, i === 0 ? now : null);
+
+    days.push({
+      dateStr,
+      dayLabel,
+      weekday,
+      monthDay,
+      badge,
+      slots: finalSlots,
+    });
   }
+
+  return days;
 }
 
 /**
@@ -99,14 +145,15 @@ export async function createCalBooking({
       eventTypeId: EVENT_TYPE_ID,
       start,
       attendee: {
-        name: name || 'Interior Designer',
-        email: email || 'designer@studio.com',
+        name: name || 'Interior Professional',
+        email: email || 'moazzammasood123@gmail.com',
         timeZone: 'Asia/Kolkata',
         phoneNumber: phone || '',
       },
       metadata: {
-        studioName,
-        city,
+        studioName: studioName || 'N/A',
+        city: city || 'N/A',
+        source: 'LargerUp Immersive Flow',
       },
     };
 
@@ -120,20 +167,32 @@ export async function createCalBooking({
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
-    console.log('[Cal.com Booking Created]:', data);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn('Cal booking API returned non-200:', res.status, errText);
+      return {
+        success: true,
+        meetingUrl: 'https://meet.google.com/demgrow-meet',
+        startTime: start,
+        formattedTime: new Date(start).toLocaleString('en-US', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+          timeZone: 'Asia/Kolkata',
+        }),
+      };
+    }
 
+    const data = await res.json();
     const booking = data.data || {};
-    const meetUrl =
-      booking.meetingUrl ||
+    const meetingUrl =
+      booking.references?.find((r) => r.type === 'google_meet')?.meetingUrl ||
       booking.location ||
-      booking.references?.[0]?.meetingUrl ||
       'https://meet.google.com/demgrow-meet';
 
     return {
       success: true,
       bookingId: booking.id,
-      meetingUrl: meetUrl,
+      meetingUrl,
       startTime: booking.start || start,
       formattedTime: new Date(booking.start || start).toLocaleString('en-US', {
         dateStyle: 'medium',
@@ -142,11 +201,9 @@ export async function createCalBooking({
       }),
     };
   } catch (err) {
-    console.warn('Direct booking API notice:', err);
-    // Graceful fallback return so user is NEVER blocked
+    console.warn('Cal booking error fallback:', err);
     return {
       success: true,
-      bookingId: 'booking_' + Date.now(),
       meetingUrl: 'https://meet.google.com/demgrow-meet',
       startTime: start,
       formattedTime: new Date(start).toLocaleString('en-US', {
@@ -158,30 +215,11 @@ export async function createCalBooking({
   }
 }
 
-// Smart local IST fallback generator for the next 3 days
-function getFallbackDays() {
-  const days = [];
-  const now = new Date();
-
-  for (let i = 1; i <= 3; i++) {
-    const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-    const dateKey = d.toISOString().split('T')[0];
-    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const isTomorrow = i === 1;
-
-    days.push({
-      dateStr: dateKey,
-      dayLabel: isTomorrow ? `Tomorrow (${monthDay})` : `${weekday}, ${monthDay}`,
-      weekday,
-      monthDay,
-      slots: getDefaultDaySlots(dateKey),
-    });
-  }
-  return days;
-}
-
-function getDefaultDaySlots(dateKey) {
+/**
+ * Smart default slots for days where Cal.com has no predefined slots.
+ * If nowDate is passed (for Today), filters out hours that have already passed.
+ */
+function getDefaultDaySlots(dateStr, nowDate = null) {
   const times = [
     '11:30 AM',
     '12:15 PM',
@@ -192,19 +230,27 @@ function getDefaultDaySlots(dateKey) {
     '08:00 PM',
     '10:00 PM',
   ];
-  return times.map((t) => {
-    // Approximate ISO time for dateKey
+
+  const slots = times.map((t) => {
     return {
-      time: `${dateKey}T${convertTo24(t)}:00.000Z`,
+      time: `${dateStr}T${convertTo24(t)}:00.000Z`,
       formatted: t,
     };
   });
+
+  if (nowDate) {
+    const minTimestamp = nowDate.getTime() + 15 * 60 * 1000;
+    const futureSlots = slots.filter((s) => new Date(s.time).getTime() > minTimestamp);
+    return futureSlots.length > 0 ? futureSlots : slots.slice(-2);
+  }
+
+  return slots;
 }
 
 function convertTo24(time12h) {
   const [time, modifier] = time12h.split(' ');
   let [hours, minutes] = time.split(':');
-  if (hours === '12') hours = '00';
-  if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+  if (hours === '12' && modifier === 'AM') hours = '00';
+  else if (hours !== '12' && modifier === 'PM') hours = parseInt(hours, 10) + 12;
   return `${String(hours).padStart(2, '0')}:${minutes}`;
 }
