@@ -27,7 +27,7 @@ export const videoCaseStudies = [
     location: 'Kolkata',
     videoUrl: '/videos/deco-perfect.mp4',
     poster: '/videos/deco-perfect-poster.jpg',
-    fullQuote: 'Consistent, qualified homeowner inquiries every month. LargerUp eliminated the dry spells and gave our studio complete pipeline predictability.',
+    fullQuote: 'Consistent, qualified homeowner inquiries every month. LargerUp eliminated the dry spells and gave our studio complete client acquisition predictability.',
   },
 ];
 
@@ -346,7 +346,7 @@ export default function VideoTestimonials({
       {!hideHeader && (
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight">
-            How interior studios scale their client pipeline.
+            Our clients whom we helped by increasing their sales
           </h2>
         </div>
       )}

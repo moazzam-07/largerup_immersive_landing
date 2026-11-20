@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   CheckCircle2,
   Calendar,
-  Sparkles,
   X,
   ArrowRight,
 } from 'lucide-react';
@@ -170,15 +169,11 @@ export default function StepSuccess({ formData, bookingDetails }) {
 
       {/* Main Testimonials Slide Content — 100% Fully Visible At Last */}
       <div className="w-full text-center max-w-2xl mx-auto mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200/80 text-[11px] font-semibold text-neutral-700 mb-2.5">
-          <Sparkles className="w-3 h-3 text-neutral-800" />
-          <span>Verified Interior Studios • Video Case Studies</span>
-        </div>
         <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-neutral-900 leading-tight mb-2">
-          How interior studios scale their client pipeline.
+          Our clients whom we helped by increasing their sales
         </h1>
         <p className="text-xs sm:text-sm text-neutral-500 max-w-lg mx-auto font-light leading-relaxed">
-          Watch how studio founders switched from portal leads to an exclusive custom portfolio website engineered for high-ticket clients.
+          See how our sophisticated lead generation and management systems helped these interior studios get more inquiries and easily manage them.
         </p>
       </div>
 
