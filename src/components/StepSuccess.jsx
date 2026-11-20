@@ -15,6 +15,7 @@ import PortfolioCreations from './PortfolioCreations';
 export default function StepSuccess({ formData, bookingDetails }) {
   const clientFirstName = formData.name ? formData.name.split(' ')[0] : 'there';
   const [showOverlay, setShowOverlay] = useState(true);
+  const [isManualDetails, setIsManualDetails] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [modalVideo, setModalVideo] = useState(null);
   const [modalInitialTime, setModalInitialTime] = useState(0);
@@ -24,9 +25,9 @@ export default function StepSuccess({ formData, bookingDetails }) {
     `Hi LargerUp team, I'm ${formData.name} from ${formData.studioName || formData.name}. Our call is confirmed for ${bookingDetails?.formatted || 'our scheduled call'}.`
   );
 
-  // Auto-dismiss overlay after 3 seconds
+  // Auto-dismiss overlay after 3 seconds on initial mount, but NOT when manually opened via "Booking Details"
   useEffect(() => {
-    if (!showOverlay) return;
+    if (!showOverlay || isManualDetails) return;
 
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -40,6 +41,18 @@ export default function StepSuccess({ formData, bookingDetails }) {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [showOverlay, isManualDetails]);
+
+  // Lock body scroll when overlay is active
+  useEffect(() => {
+    if (showOverlay) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [showOverlay]);
 
   const handleOpenModal = (item, curTime = 0, isMuted = false) => {
@@ -53,90 +66,110 @@ export default function StepSuccess({ formData, bookingDetails }) {
     setModalInitialTime(0);
   };
 
+  const handleCloseOverlay = () => {
+    setShowOverlay(false);
+    setIsManualDetails(false);
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-3 sm:py-6 flex flex-col text-left animate-blur-in relative">
-      {/* 3-Second Confirmation Overlay Modal */}
-      {showOverlay && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md transition-all duration-300"
-          onClick={() => setShowOverlay(false)}
-        >
+      {/* Confirmation / Booking Details Modal via Portal (Bypasses parent CSS transforms) */}
+      {showOverlay &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
-            className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-neutral-100 flex flex-col items-center text-center animate-scale-up relative"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md transition-all duration-300"
+            onClick={handleCloseOverlay}
           >
-            {/* Close Button */}
-            <button
-              onClick={() => setShowOverlay(false)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition-colors"
-              aria-label="Close confirmation"
+            <div
+              className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-neutral-100 flex flex-col items-center text-center relative select-none"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Success Icon: Pure Black & White */}
-            <div className="w-14 h-14 rounded-full bg-neutral-900 text-white flex items-center justify-center mb-3 shadow-sm">
-              <CheckCircle2 className="w-7 h-7 stroke-[2.2]" />
-            </div>
-
-            <span className="px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] font-semibold text-neutral-900 uppercase tracking-wider mb-2">
-              Call Confirmed
-            </span>
-
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 mb-1">
-              You're all set, {clientFirstName}!
-            </h2>
-            <p className="text-xs text-neutral-500 mb-4 leading-relaxed">
-              We've booked your call and started preparing {formData.studioName || 'your'} website preview.
-            </p>
-
-            {/* Quick Meeting Capsule */}
-            <div className="w-full bg-neutral-50 border border-neutral-200/90 rounded-2xl p-3 mb-4 text-left">
-              <div className="flex items-center justify-between text-[11px] text-neutral-500 mb-1 font-medium">
-                <span className="uppercase tracking-wider">Scheduled Time</span>
-                <span className="bg-white border border-neutral-200 text-neutral-800 px-2 py-0.5 rounded-full text-[10px]">
-                  Google Meet
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-900 shrink-0" />
-                <span className="text-xs font-semibold text-neutral-900 truncate">
-                  {bookingDetails?.formatted || '15-Minute Strategy Walkthrough'}
-                </span>
-              </div>
-            </div>
-
-            {/* Black & White WhatsApp Button with Official WhatsApp Icon */}
-            <a
-              href={`https://wa.me/?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3.5 px-4 rounded-full flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] mb-3"
-            >
-              <WhatsAppIcon className="w-4 h-4 fill-white" />
-              <span>Message on WhatsApp</span>
-            </a>
-
-            {/* Timer countdown bar */}
-            <div className="w-full flex items-center justify-between text-[11px] text-neutral-400 mt-1">
-              <span>Showing client reviews in {countdown}s...</span>
+              {/* Close Button */}
               <button
-                onClick={() => setShowOverlay(false)}
-                className="text-neutral-700 hover:text-neutral-900 font-semibold underline inline-flex items-center gap-0.5"
+                onClick={handleCloseOverlay}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close confirmation"
               >
-                <span>View Now</span>
-                <ArrowRight className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </button>
+
+              {/* Success Icon: Pure Black & White */}
+              <div className="w-14 h-14 rounded-full bg-neutral-900 text-white flex items-center justify-center mb-3 shadow-sm">
+                <CheckCircle2 className="w-7 h-7 stroke-[2.2]" />
+              </div>
+
+              <span className="px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] font-semibold text-neutral-900 uppercase tracking-wider mb-2">
+                Call Confirmed
+              </span>
+
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 mb-1">
+                You're all set, {clientFirstName}!
+              </h2>
+              <p className="text-xs text-neutral-500 mb-4 leading-relaxed">
+                We've booked your call and started preparing {formData.studioName || 'your'} website preview.
+              </p>
+
+              {/* Quick Meeting Capsule */}
+              <div className="w-full bg-neutral-50 border border-neutral-200/90 rounded-2xl p-3.5 mb-4 text-left">
+                <div className="flex items-center justify-between text-[11px] text-neutral-500 mb-1 font-medium">
+                  <span className="uppercase tracking-wider">Scheduled Time</span>
+                  <span className="bg-white border border-neutral-200 text-neutral-800 px-2 py-0.5 rounded-full text-[10px]">
+                    Google Meet
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-neutral-900 shrink-0" />
+                  <span className="text-xs font-semibold text-neutral-900 truncate">
+                    {bookingDetails?.formatted || '15-Minute Strategy Walkthrough'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Black & White WhatsApp Button with Official WhatsApp Icon */}
+              <a
+                href={`https://wa.me/?text=${whatsappMessage}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3.5 px-4 rounded-full flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] mb-3"
+              >
+                <WhatsAppIcon className="w-4 h-4 fill-white" />
+                <span>Message on WhatsApp</span>
+              </a>
+
+              {/* Countdown or Manual Close Action */}
+              {!isManualDetails ? (
+                <>
+                  <div className="w-full flex items-center justify-between text-[11px] text-neutral-400 mt-1">
+                    <span>Showing client reviews in {countdown}s...</span>
+                    <button
+                      onClick={handleCloseOverlay}
+                      className="text-neutral-700 hover:text-neutral-900 font-semibold underline inline-flex items-center gap-0.5 cursor-pointer"
+                    >
+                      <span>View Now</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="w-full h-1 bg-neutral-100 rounded-full mt-2 overflow-hidden">
+                    <div
+                      className="h-full bg-neutral-900 transition-all duration-1000 ease-linear"
+                      style={{ width: `${(countdown / 3) * 100}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleCloseOverlay}
+                  className="w-full py-2.5 rounded-full text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+                >
+                  Close Details
+                </button>
+              )}
             </div>
-            <div className="w-full h-1 bg-neutral-100 rounded-full mt-2 overflow-hidden">
-              <div
-                className="h-full bg-neutral-900 transition-all duration-1000 ease-linear"
-                style={{ width: `${(countdown / 3) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Persistent Subtle Top Status Capsule: Pure Black & White */}
       <div className="w-full flex flex-wrap items-center justify-between gap-2.5 bg-neutral-50/90 border border-neutral-200/90 rounded-2xl px-4 py-2.5 mb-5 text-xs">
@@ -151,10 +184,10 @@ export default function StepSuccess({ formData, bookingDetails }) {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => {
-              setCountdown(5);
+              setIsManualDetails(true);
               setShowOverlay(true);
             }}
-            className="text-neutral-600 hover:text-neutral-900 font-medium underline text-xs"
+            className="text-neutral-600 hover:text-neutral-900 font-medium underline text-xs cursor-pointer"
           >
             Booking Details
           </button>

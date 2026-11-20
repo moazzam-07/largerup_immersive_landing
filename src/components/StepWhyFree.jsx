@@ -29,7 +29,7 @@ export default function StepWhyFree({ onNext }) {
             1
           </div>
           <span className="text-xs sm:text-sm font-semibold text-neutral-900 leading-snug">
-            We focus exclusively on interior design studios & architects.
+            We are a new startup in Kolkata and we want to acquire new clients.
           </span>
         </div>
 
@@ -51,15 +51,21 @@ export default function StepWhyFree({ onNext }) {
             3
           </div>
           <span className="text-xs sm:text-sm font-semibold text-neutral-900 leading-snug">
-            Engineered with local Google SEO and direct WhatsApp inquiries.
+            Your genuine review and feedback helps us to land more clients.
           </span>
         </div>
       </div>
 
-      {/* Trust Line */}
-      <div className="flex items-center gap-2 text-xs text-neutral-600 mb-6 px-1">
-        <Check className="w-4 h-4 text-neutral-900 shrink-0 stroke-[2.5]" />
-        <span>You own 100% of your website code, domain, and photos.</span>
+      {/* Trust Lines */}
+      <div className="space-y-2 mb-6 px-1">
+        <div className="flex items-center gap-2 text-xs text-neutral-600">
+          <Check className="w-4 h-4 text-neutral-900 shrink-0 stroke-[2.5]" />
+          <span>You own 100% of the website domain and code.</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-neutral-600">
+          <Check className="w-4 h-4 text-neutral-900 shrink-0 stroke-[2.5]" />
+          <span>We build websites engineered with Google SEO and direct WhatsApp inquiries to increase your sales.</span>
+        </div>
       </div>
 
       {/* Floating Next Button if scrolled away on small screens */}
