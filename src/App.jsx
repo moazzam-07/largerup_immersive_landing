@@ -15,7 +15,7 @@ import StepSelectSlot from './components/StepSelectSlot';
 import StepSuccess from './components/StepSuccess';
 import { createTwentyLead, updateTwentyLeadToMeetingBooked } from './lib/twentyCrm';
 import { fetchAvailableSlots, createCalBooking } from './lib/calApi';
-import { trackLeadEvent, trackScheduleEvent, trackStepView } from './lib/metaPixel';
+import { trackLeadEvent, trackScheduleEvent, trackStepView, trackViewContent } from './lib/metaPixel';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -42,8 +42,9 @@ export default function App() {
 
   const [bookingDetails, setBookingDetails] = useState(null);
 
-  // Pre-fetch available booking slots on mount
+  // Pre-fetch available booking slots on mount & track ViewContent
   useEffect(() => {
+    trackViewContent();
     fetchAvailableSlots().then((days) => {
       setAvailableDays(days);
       if (days && days.length > 0) {
