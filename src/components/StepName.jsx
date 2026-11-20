@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { TypingAnimation } from './ui/typing-animation';
+import { Highlighter } from './ui/highlighter';
 
 export default function StepName({ value, onNext }) {
   const [name, setName] = useState(value || '');
@@ -22,7 +23,28 @@ export default function StepName({ value, onNext }) {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
+    <div className="w-full max-w-lg mx-auto px-6 py-4 sm:py-8 flex flex-col text-left animate-blur-in">
+      {/* Top Banner Callout Filling the Upper White Space */}
+      <div className="mb-6 sm:mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200/80 text-[11px] font-semibold tracking-wide uppercase text-neutral-700 mb-2.5">
+          <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
+          <span>Complimentary Studio Grant</span>
+        </div>
+        <div className="text-base sm:text-lg text-neutral-800 font-medium">
+          Start here to{' '}
+          <Highlighter
+            action="highlight"
+            color="#fef08a"
+            strokeWidth={1.8}
+            padding={3}
+            animationDuration={650}
+            className="font-semibold text-neutral-900"
+          >
+            claim your free website
+          </Highlighter>
+        </div>
+      </div>
+
       {/* Question with Typing Animation */}
       <TypingAnimation
         as="h1"
@@ -32,7 +54,7 @@ export default function StepName({ value, onNext }) {
         What's your name?
       </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
-        We'll customize your free website preview for you.
+        We'll personalize your custom website for your studio.
       </p>
 
       {/* Input Form */}

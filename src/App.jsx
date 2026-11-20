@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import confetti from 'canvas-confetti';
+import { AnimatePresence } from 'motion/react';
+import IntroEntrance from './components/IntroEntrance';
 import StepProgressBar from './components/StepProgressBar';
 import StepName from './components/StepName';
 import StepStudioType from './components/StepStudioType';
@@ -16,6 +18,7 @@ import { fetchAvailableSlots, createCalBooking } from './lib/calApi';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [showIntro, setShowIntro] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const containerRef = useRef(null);
   const twentyOppIdRef = useRef(null);
@@ -192,6 +195,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col justify-between selection:bg-neutral-900 selection:text-white">
+      {/* Intro Morph Entrance on First Arrival */}
+      <AnimatePresence>
+        {showIntro && (
+          <IntroEntrance onComplete={() => setShowIntro(false)} />
+        )}
+      </AnimatePresence>
+
       {/* Top Apple / Uber Navigation */}
       {currentStep < 9 && (
         <StepProgressBar
