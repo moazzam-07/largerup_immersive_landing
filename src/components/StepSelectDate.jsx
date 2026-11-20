@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Check, ArrowRight } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepSelectDate({
   availableDays = [],
@@ -13,9 +14,13 @@ export default function StepSelectDate({
           <Calendar className="w-3.5 h-3.5" />
           <span>Step 1 of 2: Select Date</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1">
+        <TypingAnimation
+          as="h1"
+          duration={35}
+          className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1 block"
+        >
           Pick a consultation date.
-        </h1>
+        </TypingAnimation>
         <p className="text-xs sm:text-sm text-neutral-500">
           Choose an available day over the next 3 days to talk about your website.
         </p>
@@ -60,7 +65,7 @@ export default function StepSelectDate({
                       {day.weekday}, {day.monthDay}
                     </span>
                     {isTomorrow && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-900 text-white">
                         Tomorrow
                       </span>
                     )}

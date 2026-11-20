@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Check, HeartHandshake, Video, MessageCircle, Play } from 'lucide-react';
 import { videoCaseStudies } from './VideoTestimonials';
 import VideoModal from './VideoModal';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepWhyFree({ onNext, name }) {
   const [modalVideo, setModalVideo] = useState(null);
@@ -10,9 +11,13 @@ export default function StepWhyFree({ onNext, name }) {
     <div className="w-full max-w-lg mx-auto px-5 py-3 sm:py-6 flex flex-col text-left animate-blur-in">
       {/* Title & Subtitle */}
       <div className="mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1">
+        <TypingAnimation
+          as="h1"
+          duration={35}
+          className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1 block"
+        >
           Why is this website free?
-        </h1>
+        </TypingAnimation>
         <p className="text-xs sm:text-sm text-neutral-500">
           A simple, honest deal between us and interior designers.
         </p>
@@ -109,7 +114,7 @@ export default function StepWhyFree({ onNext, name }) {
 
       {/* Trust Line */}
       <div className="flex items-center gap-2 text-xs text-neutral-600 mb-4 px-1">
-        <Check className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.5]" />
+        <Check className="w-4 h-4 text-neutral-900 shrink-0 stroke-[2.5]" />
         <span>You own 100% of your website, photos, and domain name.</span>
       </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Lock } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepContact({
   formData,
@@ -11,6 +12,7 @@ export default function StepContact({
   );
   const [email, setEmail] = useState(formData.email || '');
   const [errors, setErrors] = useState({});
+  const [q1Done, setQ1Done] = useState(false);
 
   const handlePhoneChange = (e) => {
     const cleaned = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
@@ -61,9 +63,14 @@ export default function StepContact({
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
+      <TypingAnimation
+        as="h1"
+        duration={30}
+        onComplete={() => setQ1Done(true)}
+        className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2 block"
+      >
         Where should we send your site preview?
-      </h1>
+      </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
         We'll send your website design link directly to your mobile and email.
       </p>
@@ -98,7 +105,15 @@ export default function StepContact({
         {/* Email Input */}
         <div>
           <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-            Email address <span className="text-red-500">*</span>
+            <TypingAnimation
+              as="span"
+              duration={30}
+              enabled={q1Done}
+              className="inline-block"
+            >
+              Email address
+            </TypingAnimation>{' '}
+            <span className="text-red-500">*</span>
           </label>
           <input
             type="email"

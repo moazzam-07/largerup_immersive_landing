@@ -146,7 +146,7 @@ export default function VideoModal({
         >
           {/* Studio Tag Pill */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-xl bg-black/50 border border-white/20 text-white shadow-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-white/90 animate-pulse" />
             <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-white/95">
               {videoData.studio} • {videoData.location}
             </span>

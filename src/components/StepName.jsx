@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepName({ value, onNext }) {
   const [name, setName] = useState(value || '');
@@ -22,10 +23,14 @@ export default function StepName({ value, onNext }) {
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
-      {/* Title */}
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
+      {/* Question with Typing Animation */}
+      <TypingAnimation
+        as="h1"
+        duration={35}
+        className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2 block"
+      >
         What's your name?
-      </h1>
+      </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
         We'll customize your free website preview for you.
       </p>
@@ -59,10 +64,6 @@ export default function StepName({ value, onNext }) {
           <span>Continue</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </button>
-
-        <p className="text-xs text-neutral-400 text-center">
-          Press <kbd className="px-1.5 py-0.5 rounded bg-neutral-100 border border-neutral-200 text-neutral-600 font-mono text-[10px]">Enter ↵</kbd>
-        </p>
       </form>
     </div>
   );

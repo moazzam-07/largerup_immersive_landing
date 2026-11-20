@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepSelectSlot({
   selectedDate,
@@ -37,9 +38,13 @@ export default function StepSelectSlot({
           </button>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1">
+        <TypingAnimation
+          as="h1"
+          duration={35}
+          className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-1 block"
+        >
           Pick a call time.
-        </h1>
+        </TypingAnimation>
         <p className="text-xs sm:text-sm text-neutral-500">
           Open slots for <span className="font-semibold text-neutral-800">{selectedDate?.dayLabel || 'selected day'}</span> (IST).
         </p>

@@ -84,3 +84,12 @@
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink-cursor {
+  animation: blinkCursor 0.8s ease-in-out infinite;
+}

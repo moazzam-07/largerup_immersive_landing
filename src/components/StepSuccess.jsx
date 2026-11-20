@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   CheckCircle2,
-  MessageCircle,
   Calendar,
   Sparkles,
   X,
@@ -9,6 +8,7 @@ import {
 } from 'lucide-react';
 import VideoTestimonials from './VideoTestimonials';
 import VideoModal from './VideoModal';
+import WhatsAppIcon from './WhatsAppIcon';
 
 export default function StepSuccess({ formData, bookingDetails }) {
   const clientFirstName = formData.name ? formData.name.split(' ')[0] : 'there';
@@ -72,12 +72,12 @@ export default function StepSuccess({ formData, bookingDetails }) {
               <X className="w-4 h-4" />
             </button>
 
-            {/* Success Icon */}
-            <div className="w-14 h-14 rounded-full bg-emerald-100/90 text-emerald-600 flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
+            {/* Success Icon: Pure Black & White */}
+            <div className="w-14 h-14 rounded-full bg-neutral-900 text-white flex items-center justify-center mb-3 shadow-sm">
+              <CheckCircle2 className="w-7 h-7 stroke-[2.2]" />
             </div>
 
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800 uppercase tracking-wider mb-2">
+            <span className="px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] font-semibold text-neutral-900 uppercase tracking-wider mb-2">
               Call Confirmed
             </span>
 
@@ -104,14 +104,14 @@ export default function StepSuccess({ formData, bookingDetails }) {
               </div>
             </div>
 
-            {/* WhatsApp CTA */}
+            {/* Black & White WhatsApp Button with Official WhatsApp Icon */}
             <a
               href={`https://wa.me/?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-medium text-xs sm:text-sm py-3 px-4 rounded-full flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-[0.98] mb-3"
+              className="w-full bg-neutral-900 hover:bg-black text-white font-medium text-xs sm:text-sm py-3.5 px-4 rounded-full flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] mb-3"
             >
-              <MessageCircle className="w-4 h-4 fill-current" />
+              <WhatsAppIcon className="w-4 h-4 fill-white" />
               <span>Message on WhatsApp</span>
             </a>
 
@@ -128,7 +128,7 @@ export default function StepSuccess({ formData, bookingDetails }) {
             </div>
             <div className="w-full h-1 bg-neutral-100 rounded-full mt-2 overflow-hidden">
               <div
-                className="h-full bg-emerald-500 transition-all duration-1000 ease-linear"
+                className="h-full bg-neutral-900 transition-all duration-1000 ease-linear"
                 style={{ width: `${(countdown / 3) * 100}%` }}
               />
             </div>
@@ -136,10 +136,10 @@ export default function StepSuccess({ formData, bookingDetails }) {
         </div>
       )}
 
-      {/* Persistent Subtle Top Status Capsule (Allows reopening booking details anytime) */}
+      {/* Persistent Subtle Top Status Capsule: Pure Black & White */}
       <div className="w-full flex flex-wrap items-center justify-between gap-2.5 bg-neutral-50/90 border border-neutral-200/90 rounded-2xl px-4 py-2.5 mb-5 text-xs">
         <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="flex h-2 w-2 rounded-full bg-neutral-900 animate-pulse" />
           <span className="font-semibold text-neutral-900">Call Confirmed</span>
           <span className="text-neutral-300">•</span>
           <span className="text-neutral-600 truncate max-w-[200px] sm:max-w-none">
@@ -160,9 +160,9 @@ export default function StepSuccess({ formData, bookingDetails }) {
             href={`https://wa.me/?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[#25D366] hover:bg-[#20ba5a] text-white px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 shadow-sm transition-transform active:scale-95"
+            className="bg-neutral-900 hover:bg-black text-white px-3 py-1.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
           >
-            <MessageCircle className="w-3 h-3 fill-current" />
+            <WhatsAppIcon className="w-3.5 h-3.5 fill-white" />
             <span>WhatsApp</span>
           </a>
         </div>
@@ -190,11 +190,11 @@ export default function StepSuccess({ formData, bookingDetails }) {
         hideCta={true}
       />
 
-      {/* Subtle Walkthrough Prep & WhatsApp Footer */}
+      {/* Subtle Walkthrough Prep & WhatsApp Footer: Pure Black & White */}
       <div className="bg-neutral-50 border border-neutral-200/90 rounded-3xl p-5 sm:p-7 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left mt-8">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 mb-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-900 mb-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-neutral-900" />
             <span>Your walkthrough is confirmed</span>
           </div>
           <h4 className="text-base sm:text-lg font-bold text-neutral-900">
@@ -208,9 +208,9 @@ export default function StepSuccess({ formData, bookingDetails }) {
           href={`https://wa.me/?text=${whatsappMessage}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full sm:w-auto bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-full transition-all shrink-0 active:scale-95 inline-flex items-center justify-center gap-2 shadow-sm"
+          className="w-full sm:w-auto bg-neutral-900 hover:bg-black text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-full transition-all shrink-0 active:scale-95 inline-flex items-center justify-center gap-2 shadow-sm"
         >
-          <MessageCircle className="w-4 h-4 fill-current" />
+          <WhatsAppIcon className="w-4 h-4 fill-white" />
           <span>Open WhatsApp Chat</span>
         </a>
       </div>

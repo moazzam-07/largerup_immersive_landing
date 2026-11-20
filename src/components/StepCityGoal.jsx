@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepCityGoal({ name, cityValue, studioNameValue, onNext }) {
   const [studioName, setStudioName] = useState(studioNameValue || '');
   const [city, setCity] = useState(cityValue || '');
   const [errors, setErrors] = useState({});
+  const [q1Done, setQ1Done] = useState(false);
 
   const quickCities = [
     'Mumbai',
@@ -43,9 +45,14 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
+      <TypingAnimation
+        as="h1"
+        duration={35}
+        onComplete={() => setQ1Done(true)}
+        className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2 block"
+      >
         Where are you based?
-      </h1>
+      </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
         This helps local clients in your city easily find your work.
       </p>
@@ -99,7 +106,15 @@ export default function StepCityGoal({ name, cityValue, studioNameValue, onNext 
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-              Studio or Brand Name <span className="text-red-500">*</span>
+              <TypingAnimation
+                as="span"
+                duration={30}
+                enabled={q1Done}
+                className="inline-block"
+              >
+                Studio or Brand Name
+              </TypingAnimation>{' '}
+              <span className="text-red-500">*</span>
             </label>
           </div>
           <input

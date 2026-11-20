@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Building2, User, Hammer, Palette, Check } from 'lucide-react';
+import { TypingAnimation } from './ui/typing-animation';
 
 export default function StepStudioType({ name, value, onNext }) {
   const [selected, setSelected] = useState(value || '');
@@ -40,9 +41,13 @@ export default function StepStudioType({ name, value, onNext }) {
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-6 sm:py-12 flex flex-col text-left animate-blur-in">
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2">
+      <TypingAnimation
+        as="h1"
+        duration={35}
+        className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 mb-2 block"
+      >
         What describes your work?
-      </h1>
+      </TypingAnimation>
       <p className="text-sm sm:text-base text-neutral-500 mb-8">
         This helps us tailor your website structure and portfolio layout.
       </p>
