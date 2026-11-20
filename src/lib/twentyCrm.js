@@ -10,8 +10,8 @@ const TWENTY_API_KEY =
 
 /**
  * Creates or links a Person and creates an Opportunity with:
- * - leadStatus: "NEW_LEAD" (for the "Lead life" Kanban view)
- * - stage: "NEW_LEAD" (for the "Lead Pipeline" Kanban view)
+ * - leadStatus: "NEW_LEAD" (for the "Lead life" pipeline view)
+ * - Stage is untouched to preserve the separate "Lead Pipeline"
  * Non-blocking, returns { personId, opportunityId } or null.
  */
 export async function createTwentyLead({
@@ -102,12 +102,12 @@ export async function createTwentyLead({
       }
     }
 
-    // 3. Create Opportunity in BOTH leadStatus: "NEW_LEAD" (for Lead life) AND stage: "NEW_LEAD" (for Lead Pipeline)
+    // 3. Create Opportunity in leadStatus: "NEW_LEAD" for the "Lead life" pipeline
+    // NOTE: stage is strictly omitted so it does not interfere with the old "Lead Pipeline"
     const opportunityName = `${name || 'New Lead'} — ${studioName || 'Interior Studio'}`;
     const opportunityPayload = {
       name: opportunityName,
       leadStatus: 'NEW_LEAD',
-      stage: 'NEW_LEAD',
       pointOfContactId: personId || null,
     };
 
@@ -123,7 +123,7 @@ export async function createTwentyLead({
     const oppData = await oppRes.json();
     const opportunityId = oppData?.data?.createOpportunity?.id;
 
-    console.log('[Twenty CRM] Lead created in NEW_LEAD (Lead life & Pipeline):', {
+    console.log('[Twenty CRM] Lead created with leadStatus NEW_LEAD (Lead life):', {
       personId,
       opportunityId,
     });
@@ -136,9 +136,10 @@ export async function createTwentyLead({
 }
 
 /**
- * Updates an Opportunity stage to "MEETING_BOOKED" in both leadStatus and stage,
+ * Updates an Opportunity leadStatus to "MEETING_BOOKED" in "Lead life" pipeline,
  * populates the "Meeting Booked Date & Time" (meetingBookedAt) field,
  * and creates a Note containing the Google Meet link attached to the opportunity.
+ * Stage is kept untouched.
  */
 export async function updateTwentyLeadToMeetingBooked(
   opportunityId,
@@ -152,10 +153,9 @@ export async function updateTwentyLeadToMeetingBooked(
   try {
     const bookedIsoTime = startTime || new Date().toISOString();
 
-    // 1. Update Opportunity: leadStatus, stage, and meetingBookedAt
+    // 1. Update Opportunity: leadStatus and meetingBookedAt (Do NOT touch stage!)
     const patchPayload = {
       leadStatus: 'MEETING_BOOKED',
-      stage: 'MEETING_BOOKED',
       meetingBookedAt: bookedIsoTime,
     };
 
