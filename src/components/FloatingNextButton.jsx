@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowRight } from 'lucide-react';
 
 /**
  * Floating Next Button for long / scrollable slides.
- * Appears at the bottom-right when the user is scrolled away from the primary inline button.
- * Smoothly converges and dissolves into the inline button as the user scrolls down to it.
+ * Uses createPortal to escape CSS containing block traps (e.g. animate-blur-in filters/transforms),
+ * ensuring it stays fixed to the actual mobile viewport.
+ * Smoothly dissolves into the inline button as the user scrolls down to it.
  */
 export default function FloatingNextButton({
   targetRef,
@@ -40,7 +42,9 @@ export default function FloatingNextButton({
     return () => observer.disconnect();
   }, [targetRef]);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <button
       type="button"
       onClick={onClick}
@@ -53,6 +57,7 @@ export default function FloatingNextButton({
     >
       <span>{label}</span>
       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-    </button>
+    </button>,
+    document.body
   );
 }
